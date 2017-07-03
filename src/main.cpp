@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "interface.h"
+#include "process.h"
 
 void setup();
 void loop();
@@ -31,8 +32,22 @@ void setup(void) {
 		pinMode(i, INPUT_PULLUP);
 	}
 
-	interfaceInit();
+	cli();
 
+	TCCR3A = 0;// set entire TCCR1A register to 0
+	TCCR3B = 0;// same for TCCR1B
+	TCNT3  = 0;//initialize counter value to 0
+	// set compare match register for 1hz increments
+	OCR3A = F_CPU / 200;// = (16*10^6) / (1*1024) - 1 (must be <65536)
+	// turn on CTC mode
+	TCCR3B |= (1 << WGM32);
+	// Set CS10 and CS12 bits for 1024 prescaler
+	TCCR3B |= (1 << CS32) | (0 << CS31) | (1 << CS30);
+	// enable timer compare interrupt
+  TIMSK3 |= (1 << OCIE3A);
+
+	sei();
+	interfaceInit();
 }
 
 void loop(void){

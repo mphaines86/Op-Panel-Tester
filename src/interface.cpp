@@ -41,7 +41,7 @@ struct interfaceParam_s
 struct interfaceAct_s
 {
   actionParameter_t type;
-  const char * name;
+  const char * text;
 };
 
 
@@ -78,15 +78,15 @@ const struct interfaceParam_s interfaceParameters[4][7] = {
     {ptAction, actAtt, "A.) Attributes"},
     {ptAction, actHelp, "B.) Help"},
     {ptBool, boolStore, "C.) Store Setup Data to SD"},
-    {ptParam, intStore, "D.) Store test data every         (0-1000) minutes"},
+    {ptParam, intStore, "D.) Store test data every\n(0-1000) minutes"},
     {ptMenu, 0, "#.) Main Menu"},
     {ptNone, -1, ""},
   }
 };
 
 const struct interfaceAct_s interfaceActions[4] = {
-  {actCal, "Calibration of the force sensors will now begin. Please make sure the area is clear for calibration."},
-  {actTest,"Testing will now Begin. Please make sure the area is clear for testing"},
+  {actCal, "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration."},
+  {actTest,"Testing will now Begin.\nPlease make sure the area is clear for testing."},
   {actAtt, NULL},
   {actHelp, NULL}
 };
@@ -103,7 +103,7 @@ static struct {
   enum interfacePage_e activePage;
   enum interfaceParamType_e activeMenu;
   uint8_t workingParameterNumber;
-  uint8_t sourceNumber;
+  int8_t sourceNumber;
   uint8_t tempValue;
 
 }interface;
@@ -165,6 +165,21 @@ static void drawParamMenu(){
 }
 
 static void drawActionMenu(){
+    tft.fillScreen(0x2924);
+    for(int i=0; i <= 5; i++)
+      tft.fillRect(0, i*6, tft.width(), 8, colorBar[i]);
+    tft.setCursor(0, 24);
+    tft.setTextColor(HX8357_WHITE);
+    tft.setTextSize(2);
+    tft.println();
+    tft.setTextSize(1);
+    tft.println();
+    tft.setTextSize(2);
+    tft.println(interfaceActions[interface.workingParameterNumber].text);
+    tft.setTextSize(1);
+    tft.println();
+    tft.setTextSize(2);
+    tft.print("A.) Okay        B.) Cancel");
 
 }
 
@@ -221,7 +236,17 @@ void interfaceInit(){
 }
 
 void handleActionInput(){
-
+  if(interfaceActions[interface.workingParameterNumber].text){
+    if (interface.sourceNumber==10){
+      drawMenu();
+    }
+    else if (interface.sourceNumber==11){
+      drawMenu();
+    }
+  }
+  else{
+    drawMenu();
+  }
 }
 
 void handleBoolInput(){
@@ -260,6 +285,7 @@ static void handleMenuInput(struct interfaceParam_s * inter){
   interface.activeMenu = inter->type;
   switch(inter->type){
     case ptMenu:
+      interface.activePage = inter->number;
       drawMenu();
       return;
     case ptParam:
@@ -268,11 +294,13 @@ static void handleMenuInput(struct interfaceParam_s * inter){
     case ptBool:
       drawBoolMenu();
       return;
+    case ptAction:
+      drawActionMenu();
+      return;
   }
 }
 
 static void handleUserInput(int16_t source){
-
     switch (source){
       case kb1:
         interface.sourceNumber=1;
@@ -361,6 +389,9 @@ void interfaceCheck(){
         break;
       case ptBool:
         handleBoolInput();
+        break;
+      case ptAction:
+        handleActionInput();
         break;
     }
     interface.sourceNumber = -1;

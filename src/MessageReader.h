@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define MAX_MESSAGE_LENGTH 256
+#define MAX_MESSAGE_LENGTH 10
 #define MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
 
 enum message_state_t {
@@ -13,15 +13,14 @@ enum message_state_t {
 };
 
 struct message_data_t {
-	enum message_state_t state;
 	struct {
-		uint8_t length;
-		uint8_t action;
+		uint8_t nodeID;
+		uint8_t axisLetter;
+		uint8_t commandCode;
 	} header;
+	uint8_t commandParam[MAX_MESSAGE_LENGTH-3];
+	uint8_t unorganizedMessage[MAX_MESSAGE_LENGTH];
 	uint8_t length;
-	uint8_t body[MAX_MESSAGE_LENGTH];
-	uint8_t stuffed_body[MAX_MESSAGE_LENGTH];
-	uint8_t unstuffed_body[MAX_MESSAGE_LENGTH - 2];
 };
 
 struct message_t {

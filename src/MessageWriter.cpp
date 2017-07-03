@@ -27,46 +27,43 @@ static void StuffData(const uint8_t *ptr, uint16_t length, uint8_t *dst)
 }
 
 void writerSendMessage(struct message_output_t *message){
-    uint8_t outputBuffer[message->length], writeBuffer[WRITE_BUFFER_SIZE];
-    memset(writeBuffer, 0x3E, WRITE_BUFFER_SIZE);
-    outputBuffer[0] = message->length;
-    outputBuffer[1] = message->action;
-    for(int i=2; i < message->length; i++){
-      outputBuffer[i] = message->body[i - 2];
+    uint8_t outputBuffer[message->length];
+    outputBuffer[0] = message->nodeId;
+    outputBuffer[1] = message->axisLetter;
+    outputBuffer[2] = message->commandCode;
+    for(int i=3; i < message->length; i++){
+      outputBuffer[i] = message->commandParam[i - 3];
     }
 
     //for (int i = 0; i<message->length; i++){
       //Serial.print(outputBuffer[i]);
       //Serial.print(" ");
     //}
-    //Serial.println("");
-    //StuffData(outputBuffer, message->length, writeBuffer);
 
     int i = 0;
 
     do {
-      Serial.write(writeBuffer[i]);
-      //Serial.print(" ");
+      Serial.write(outputBuffer[i]);
+      Serial.write(0x20);
       i++;
-    } while(writeBuffer[i - 1] != 0);
-
-    //Serial.println("");
+    } while(outputBuffer[i - 1] != 0);
+    memset(message->commandParam, 0x00, MAX_MESSAGE_LENGTH - 3);
 }
 
-void writerPrepMessage(struct message_output_t *message, uint8_t command, uint8_t body[MAX_MESSAGE_SIZE - 2]){
+void writerPrepMessage(struct message_output_t *message, uint8_t nodeId,
+                       uint8_t axisLetter, uint8_t commandCode,
+                       uint8_t commandParam[MAX_MESSAGE_LENGTH - 3]){
 
-  message->action = command;
-  switch (command){
-    case 't':{
-      message->length = 6;
-      for(int i = 0; i < 6; i++){
-        message->body[i] = body[i];
-      }
-      break;
+  message->nodeId = nodeId;
+  message->axisLetter = axisLetter;
+  message->commandCode = commandCode;
+  message->length = 3;
+  for (int i=0; i < MAX_MESSAGE_LENGTH-3; i++){
+    if (commandParam[i]){
+      message->commandParam[i] = commandParam[i];
+      message->length++;
     }
-    case 'p':{
-      message->length = 3;
-      message->body[0] = body[0];
+    else{
       break;
     }
   }

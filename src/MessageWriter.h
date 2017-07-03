@@ -3,17 +3,18 @@
 
 #include <Arduino.h>
 
-#define MAX_MESSAGE_SIZE 254
+#define MAX_MESSAGE_LENGTH 10
 
 struct message_output_t {
+  uint8_t nodeId;
+  uint8_t axisLetter;
+  uint8_t commandCode;
+  uint8_t commandParam[MAX_MESSAGE_LENGTH-3];
   uint8_t length;
-  uint8_t action;
-  uint8_t body[MAX_MESSAGE_SIZE - 2];
 };
 
 void writerSendMessage(struct message_output_t *);
-void writerPrepMessage(struct message_output_t *, uint8_t command, uint8_t body[MAX_MESSAGE_SIZE - 2]);
-
-
-
+void writerPrepMessage(struct message_output_t *, uint8_t nodeId,
+                       uint8_t axisLetter, uint8_t commandCode,
+                       uint8_t commandParam[MAX_MESSAGE_LENGTH - 3]);
 #endif

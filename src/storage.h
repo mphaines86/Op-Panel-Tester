@@ -11,7 +11,7 @@ typedef enum {
 uint16_t parameterList[intCount];
 
 typedef enum {
-actTest=0, actCal, actAtt, actHelp, actCount
+actCal=0, actTest, actAtt, actHelp, actCount
 } actionParameter_t;
 
 typedef void (*functionPtr_t)(void);
