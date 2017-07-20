@@ -1,5 +1,29 @@
 #include "process.h"
+#include "utilities.h"
 
+uint8_t processCalibrate(){
+  uint8_t cycle = 0;
+  TIMSK3 |= (1 << OCIE3A);
+  while(cycle < 5){
+    Delay_ms(1000);
+    cycle++;
+  }
+  Serial.println("Testing Functions!!!");
+  TIMSK3 &= (0 << OCIE3A);
+  return 1;
+}
+
+uint8_t processRun(){
+  return 1;
+}
+
+uint8_t processHelp(){
+  return 1;
+}
+
+uint8_t processAttributes(){
+  return 1;
+}
 
 const uint8_t fsrPin = 0;
 volatile int16_t fsrReading;     // the analog reading from the FSR resistor divider

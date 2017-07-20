@@ -44,7 +44,6 @@ void setup(void) {
 	// Set CS10 and CS12 bits for 1024 prescaler
 	TCCR3B |= (1 << CS32) | (0 << CS31) | (1 << CS30);
 	// enable timer compare interrupt
-  TIMSK3 |= (1 << OCIE3A);
 
 	sei();
 	interfaceInit();

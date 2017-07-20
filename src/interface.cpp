@@ -1,5 +1,6 @@
 #include "interface.h"
 #include "storage.h"
+#include "process.h"
 #include <SPI.h>
 #include "../lib/Adafruit_GFX/Adafruit_GFX.h"
 #include "../lib/Adafruit_HX8357/Adafruit_HX8357.h"
@@ -38,12 +39,18 @@ struct interfaceParam_s
 	const char * name;
 };
 
+typedef uint8_t (*functionPtr_t)(void);
+
+//TODO: Remove function pointers
 struct interfaceAct_s
 {
   actionParameter_t type;
   const char * text;
+  functionPtr_t actionFunction;
 };
 
+functionPtr_t actionFunctionList[4] = {&processCalibrate, &processRun,
+                                       &processAttributes, &processHelp};
 
 const struct interfaceParam_s interfaceParameters[4][7] = {
   {
@@ -84,11 +91,12 @@ const struct interfaceParam_s interfaceParameters[4][7] = {
   }
 };
 
+//TODO: Remove Fuction Pointers
 const struct interfaceAct_s interfaceActions[4] = {
-  {actCal, "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration."},
-  {actTest,"Testing will now Begin.\nPlease make sure the area is clear for testing."},
-  {actAtt, NULL},
-  {actHelp, NULL}
+  {actCal, "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration.", &processCalibrate},
+  {actTest,"Testing will now Begin.\nPlease make sure the area is clear for testing.", &processRun},
+  {actAtt, NULL, &processAttributes},
+  {actHelp, NULL, &processHelp}
 };
 
 static struct {
@@ -238,7 +246,9 @@ void interfaceInit(){
 void handleActionInput(){
   if(interfaceActions[interface.workingParameterNumber].text){
     if (interface.sourceNumber==10){
-      drawMenu();
+      //if((*interfaceActions.actionFunction[interface.workingParameterNumber])())
+      if((*actionFunctionList[interface.workingParameterNumber])())
+        drawMenu();
     }
     else if (interface.sourceNumber==11){
       drawMenu();

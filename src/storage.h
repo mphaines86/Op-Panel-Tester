@@ -14,10 +14,6 @@ typedef enum {
 actCal=0, actTest, actAtt, actHelp, actCount
 } actionParameter_t;
 
-typedef void (*functionPtr_t)(void);
-
-functionPtr_t functionList[actCount];
-
 typedef enum {
 boolFail=0, boolStore, boolCount
 } booleanParameter_t;

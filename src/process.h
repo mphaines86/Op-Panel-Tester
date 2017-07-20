@@ -31,4 +31,9 @@ struct registerReadWrite_t {
   uint8_t value;
 };
 
+uint8_t processCalibrate();
+uint8_t processRun();
+uint8_t processHelp();
+uint8_t processAttributes();
+
 #endif
