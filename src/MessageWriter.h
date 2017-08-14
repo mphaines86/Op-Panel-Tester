@@ -6,15 +6,17 @@
 #define MAX_MESSAGE_LENGTH 10
 
 struct message_output_t {
-  uint8_t nodeId;
-  uint8_t axisLetter;
-  uint8_t commandCode;
-  uint8_t commandParam[MAX_MESSAGE_LENGTH-3];
-  uint8_t length;
+  char nodeId;
+  char axisLetter;
+  char commandCode;
+  char * memoryBank;
+  char * commandParam;
+  char length;
 };
 
 void writerSendMessage(struct message_output_t *);
-void writerPrepMessage(struct message_output_t *, uint8_t nodeId,
-                       uint8_t axisLetter, uint8_t commandCode,
-                       uint8_t commandParam[MAX_MESSAGE_LENGTH - 3]);
+void writerPrepMessage(struct message_output_t *,char nodeId,
+                       char axisLetter,char commandCode,
+                       char * memoryBank,
+                       char * commandParam);
 #endif

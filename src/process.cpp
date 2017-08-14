@@ -1,5 +1,6 @@
 #include "process.h"
 #include "utilities.h"
+#include "MessageWriter.h"
 
 uint8_t processCalibrate(){
   uint8_t cycle = 0;
@@ -14,6 +15,9 @@ uint8_t processCalibrate(){
 }
 
 uint8_t processRun(){
+  message_output_t outputMessage;
+  writerPrepMessage(&outputMessage, NULL, NULL, 's', 'r0x60\0', '4000\0');
+  writerSendMessage(&outputMessage);
   return 1;
 }
 
