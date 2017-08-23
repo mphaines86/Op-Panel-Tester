@@ -1,6 +1,7 @@
 #include "process.h"
 #include "utilities.h"
 #include "MessageWriter.h"
+#include "storage.h"
 
 uint8_t processCalibrate(){
   uint8_t cycle = 0;
@@ -26,6 +27,14 @@ uint8_t processHelp(){
 }
 
 uint8_t processAttributes(){
+  return 1;
+}
+
+uint8_t processSave(){
+  return 1;
+}
+
+uint8_t processLoad(){
   return 1;
 }
 

@@ -71,7 +71,7 @@ void writerPrepMessage(struct message_output_t *message,char nodeId,
   message->nodeId = nodeId;
   message->axisLetter = axisLetter;
   message->commandCode = commandCode;
-  message->memoryBank = *memoryBank;
+  message->memoryBank = memoryBank;
   message->commandParam = commandParam;
   /*message->length = 3;
   for (int i=0; i < MAX_MESSAGE_LENGTH-3; i++){

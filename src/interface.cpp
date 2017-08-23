@@ -11,11 +11,12 @@
 #define TFT_CS 48
 #define TFT_DC 46
 #define TFT_RST 8 // RST can be set to -1 if you tie it to Arduino's reset
+// Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
+Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
 const uint16_t colorBar[] = {0x5ACA, 0x52A9, 0x4A48, 0x4228, 0x4207, 0x39E7};
-// Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
-
-Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
+uint8_t booleanList[boolCount];
+uint16_t parameterList[intCount];
 
 enum interfacePage_e {
   mainMenu=0, STP, CT, S
@@ -24,7 +25,6 @@ enum interfacePage_e {
 enum interfaceKeypadButton_e{
   kbA=0, kb3, kb2, kb1, kbB, kb6, kb5, kb4, kbC, kb9, kb8, kb7, kbD, kbPound,
   kb0, kbAsterisk
-
 };
 
 enum interfaceParamType_e
@@ -49,17 +49,18 @@ struct interfaceAct_s
   functionPtr_t actionFunction;
 };
 
-functionPtr_t actionFunctionList[4] = {&processCalibrate, &processRun,
-                                       &processAttributes, &processHelp};
+functionPtr_t actionFunctionList[6] = {&processCalibrate, &processRun,
+                                       &processAttributes, &processHelp,
+                                       &processSave, &processLoad};
 
-const struct interfaceParam_s interfaceParameters[4][7] = {
+const struct interfaceParam_s interfaceParameters[5][7] = {
   {
     {ptNone, -1, "Main Menu"},
     {ptMenu, 1, "A.) Set Testing Parameters"},
     {ptMenu, 2, "B.) Force Setup & Calibration"},
     {ptAction, actTest, "C.) Begin Test"},
-    {ptMenu, 3, "D.) Settings"},
-    {ptNone, -1, ""},
+    {ptMenu, 3, "D.) Storage"},
+    {ptNone, 4, "#.) Settings"},
     {ptNone, -1, ""},
   },
   {
@@ -81,12 +82,21 @@ const struct interfaceParam_s interfaceParameters[4][7] = {
     {ptMenu, 0, "*.) Main Menu"},
   },
   {
+    {ptNone, -1, "Storage"},
+    {ptAction, actSave, "A.) Save Printer Config"},
+    {ptAction, actLoad, "B.) Load Printer Config"},
+    {ptParam, intStore, "C.) Store test data every\n(0-1000) minutes"},
+    {ptNone, 0, "D.) Main Menu"},
+    {ptNone, -1, ""},
+    {ptNone, -1, ""},
+  },
+  {
     {ptNone, -1, "Settings"},
     {ptAction, actAtt, "A.) Attributes"},
     {ptAction, actHelp, "B.) Help"},
-    {ptBool, boolStore, "C.) Store Setup Data to SD"},
-    {ptParam, intStore, "D.) Store test data every\n(0-1000) minutes"},
-    {ptMenu, 0, "#.) Main Menu"},
+    {ptNone, 0, "C.) Main Menu"},
+    {ptNone, -1, ""},
+    {ptNone, -1, ""},
     {ptNone, -1, ""},
   }
 };

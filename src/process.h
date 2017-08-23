@@ -35,5 +35,7 @@ uint8_t processCalibrate();
 uint8_t processRun();
 uint8_t processHelp();
 uint8_t processAttributes();
+uint8_t processSave();
+uint8_t processLoad();
 
 #endif

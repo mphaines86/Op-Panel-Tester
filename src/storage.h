@@ -8,16 +8,16 @@ typedef enum {
   intError, intStore, intCount,
 } intParameter_t;
 
-uint16_t parameterList[intCount];
+extern uint16_t parameterList[intCount];
 
 typedef enum {
-actCal=0, actTest, actAtt, actHelp, actCount
+actCal=0, actTest, actAtt, actHelp, actCount, actSave, actLoad
 } actionParameter_t;
 
 typedef enum {
-boolFail=0, boolStore, boolCount
+boolFail=0, boolCount
 } booleanParameter_t;
 
-uint8_t booleanList[boolCount];
+extern uint8_t booleanList[boolCount];
 
 #endif
