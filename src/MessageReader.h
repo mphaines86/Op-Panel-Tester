@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 #define MAX_MESSAGE_LENGTH 10
-#define MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
 
 enum message_state_t {
 	WAITING_FOR_MESSAGE,

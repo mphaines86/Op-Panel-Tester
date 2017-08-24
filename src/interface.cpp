@@ -1,7 +1,10 @@
 #include "interface.h"
 #include "storage.h"
 #include "process.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <SPI.h>
+#pragma GCC diagnostic pop
 #include "../lib/Adafruit_GFX/Adafruit_GFX.h"
 #include "../lib/Adafruit_HX8357/Adafruit_HX8357.h"
 #include "../lib/Adafruit_GFX/Fonts/FreeSans9pt7b.h"
@@ -39,7 +42,7 @@ struct interfaceParam_s
 	const char * name;
 };
 
-typedef uint8_t (*functionPtr_t)(void);
+typedef uint8_t (*functionPtr_t)();
 
 //TODO: Remove function pointers
 struct interfaceAct_s
@@ -105,8 +108,8 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
 const struct interfaceAct_s interfaceActions[4] = {
   {actCal, "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration.", &processCalibrate},
   {actTest,"Testing will now Begin.\nPlease make sure the area is clear for testing.", &processRun},
-  {actAtt, NULL, &processAttributes},
-  {actHelp, NULL, &processHelp}
+  {actAtt, "", &processAttributes},
+  {actHelp, "", &processHelp}
 };
 
 static struct {
@@ -120,7 +123,7 @@ static struct {
   uint8_t lastButtonPress[NUM_OF_ROWS][NUM_OF_COLUMNS];
   enum interfacePage_e activePage;
   enum interfaceParamType_e activeMenu;
-  uint8_t workingParameterNumber;
+  int8_t workingParameterNumber;
   int8_t sourceNumber;
   uint8_t tempValue;
 
@@ -130,7 +133,7 @@ static uint8_t debounce(uint8_t portRegister, uint8_t port, uint8_t row, uint8_t
   //cool++;
   uint8_t output = 0;
 
-  if (!(portRegister&(1<<port))){
+  if (!(boolean)(portRegister&(1<<port))){
     if (interface.integrator[row][column] > 0)
       interface.integrator[row][column]--;
   }
@@ -208,7 +211,7 @@ static void drawBoolMenu(){
   tft.setTextColor(0x0000);
   tft.setCursor(62, 116);
   tft.print("Current Value: ");
-  if (booleanList[interface.workingParameterNumber]){
+  if ((boolean) booleanList[interface.workingParameterNumber]){
     tft.println("Yes");
   }
   else{
@@ -241,8 +244,8 @@ void interfaceInit(){
     }
   }
 
-  for (int i=0; i<intCount; i++){
-    parameterList[i] = 0;
+  for (uint16_t &i : parameterList) {
+      i = 0;
   }
   //*interface.rowsPortRegisters[0] = (1 << interface.buttonRows[0]);
   tft.begin(HX8357D);
@@ -254,10 +257,10 @@ void interfaceInit(){
 }
 
 void handleActionInput(){
-  if(interfaceActions[interface.workingParameterNumber].text){
+  if((boolean)interfaceActions[interface.workingParameterNumber].text){
     if (interface.sourceNumber==10){
       //if((*interfaceActions.actionFunction[interface.workingParameterNumber])())
-      if((*actionFunctionList[interface.workingParameterNumber])())
+      if((boolean)(*actionFunctionList[interface.workingParameterNumber])())
         drawMenu();
     }
     else if (interface.sourceNumber==11){
@@ -300,12 +303,12 @@ void handleParamInput(){
 }
 
 
-static void handleMenuInput(struct interfaceParam_s * inter){
+static void handleMenuInput(const struct interfaceParam_s * inter){
   interface.workingParameterNumber = inter->number;
   interface.activeMenu = inter->type;
   switch(inter->type){
     case ptMenu:
-      interface.activePage = inter->number;
+      interface.activePage = (interfacePage_e)inter->number;
       drawMenu();
       return;
     case ptParam:
@@ -317,6 +320,9 @@ static void handleMenuInput(struct interfaceParam_s * inter){
     case ptAction:
       drawActionMenu();
       return;
+    case ptNone:
+        return;
+
   }
 }
 
@@ -370,6 +376,8 @@ static void handleUserInput(int16_t source){
       case kbAsterisk:
         interface.sourceNumber=15;
         return;
+      default:
+        return;
 
       }
 
@@ -378,17 +386,17 @@ static void handleUserInput(int16_t source){
 
 void checkKeypad(){
   *interface.rowsPortRegisters[interface.currentRow] &= ~(1 << interface.buttonRows[interface.currentRow]);
-  int i;
+  uint8_t i;
   for (i=0; i<NUM_OF_COLUMNS; i++){
     uint8_t output = debounce(*interface.columnsPortRegisters[i], interface.buttonColumns[i], interface.currentRow, i);
-    if (!output && !interface.lastButtonPress[interface.currentRow][i]){
+    if (!(boolean)output && !(boolean)interface.lastButtonPress[interface.currentRow][i]){
       interface.lastButtonPress[interface.currentRow][i] = 1;
       //Serial.print("Button Pressed: ");
       //Serial.println((interface.currentRow * NUM_OF_ROWS) + i);
       handleUserInput((interface.currentRow*NUM_OF_ROWS) + i);
 
     }
-    else if (output){
+    else if ((boolean) output){
       interface.lastButtonPress[interface.currentRow][i] = 0;
     }
   }
@@ -413,6 +421,8 @@ void interfaceCheck(){
       case ptAction:
         handleActionInput();
         break;
+      case ptNone:
+          break;
     }
     interface.sourceNumber = -1;
   }

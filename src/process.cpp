@@ -17,7 +17,9 @@ uint8_t processCalibrate(){
 
 uint8_t processRun(){
   message_output_t outputMessage;
-  writerPrepMessage(&outputMessage, NULL, NULL, 's', 'r0x60\0', '4000\0');
+  const char *memoryBank = "r0x60";
+  const char *commandParam = "4000";
+  writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *)memoryBank, (char *)commandParam);
   writerSendMessage(&outputMessage);
   return 1;
 }

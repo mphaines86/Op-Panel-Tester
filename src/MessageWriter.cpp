@@ -1,30 +1,4 @@
-#define WRITE_BUFFER_SIZE 256
-
 #include "MessageWriter.h"
-
-#define FinishBlock(X) (*code_ptr = (X), code_ptr = dst++, code = 0x01)
-
-static void StuffData(const uint8_t *ptr, uint16_t length, uint8_t *dst)
-{
-  const uint8_t *end = ptr + length;
-  uint8_t *code_ptr = dst++;
-  uint8_t code = 0x01;
-
-  while (ptr < end)
-  {
-    if (*ptr == 0){
-      FinishBlock(code);
-    }
-    else {
-      *dst++ = *ptr;
-      code++;
-    }
-    ptr++;
-  }
-  FinishBlock(code);
-  FinishBlock(0);
-
-}
 
 void writerSendMessage(struct message_output_t *message){
     /*uint8_t outputBuffer[message->length];
@@ -35,11 +9,11 @@ void writerSendMessage(struct message_output_t *message){
       outputBuffer[i] = message->commandParam[i - 3];
     }*/
     Serial.println("testibg");
-    if(message->nodeId != NULL){
+    if(message->nodeId != '\0'){
       Serial.print(message->nodeId);
       Serial.print(' ');
     }
-    if(message->axisLetter != NULL){
+    if(message->axisLetter != '\0'){
       Serial.print(message->axisLetter);
       Serial.print(' ');
     }

@@ -3,3 +3,6 @@
 .clang_complete
 .gcc-flags.json
 *.yml
+CMakeListsPrivate.txt
+.idea/
+cmake-build-debug/
