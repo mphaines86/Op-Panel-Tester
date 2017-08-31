@@ -8,7 +8,6 @@ void writerSendMessage(struct message_output_t *message){
     for(int i=3; i < message->length; i++){
       outputBuffer[i] = message->commandParam[i - 3];
     }*/
-    Serial.println("testibg");
     if(message->nodeId != '\0'){
       Serial.print(message->nodeId);
       Serial.print(' ');
@@ -19,9 +18,9 @@ void writerSendMessage(struct message_output_t *message){
     }
     Serial.print(message->commandCode);
     Serial.print(' ');
-    Serial.print(*message->memoryBank);
+    Serial.print(message->memoryBank);
     Serial.print(' ');
-    //Serial.println(*message->commandParam);
+    Serial.println(message->commandParam);
     //for (int i = 0; i<message->length; i++){
       //Serial.print(outputBuffer[i]);
       //Serial.print(" ");
