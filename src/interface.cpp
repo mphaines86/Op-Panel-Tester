@@ -4,9 +4,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-
 #include <SPI.h>
-
 #pragma GCC diagnostic pop
 
 #include "../lib/Adafruit_GFX/Adafruit_GFX.h"
@@ -78,7 +76,7 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptMenu,   2,           "B.) Force Setup & Calibration"},
                 {ptAction, actTest,     "C.) Begin Test"},
                 {ptMenu,  3,        "D.) Storage"},
-                {ptNone,   4,      "#.) Settings"},
+                {ptMenu,   4,      "#.) Settings"},
                 {ptNone, -1, ""},
         },
         {
@@ -146,8 +144,8 @@ static struct {
 
 } interface;
 
-static uint8_t
-debounce(uint8_t portRegister, uint8_t port, uint8_t row, uint8_t column) {
+static uint8_t debounce(uint8_t portRegister, uint8_t port, uint8_t row,
+                        uint8_t column) {
     //cool++;
     uint8_t output = 0;
 

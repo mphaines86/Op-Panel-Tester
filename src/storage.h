@@ -27,5 +27,7 @@ uint8_t storageBeginSD();
 uint8_t storageLoadSD(String fileName);
 void storageNewFile();
 String* storageGetFiles();
+uint8_t storageWriteToFile(const String &fileName, uint8_t lineNumber,
+                           uint32_t data);
 
 #endif

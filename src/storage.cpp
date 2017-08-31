@@ -20,7 +20,7 @@ static String readLine(File dataFile, uint16_t lineNumber){
     return line;
 }
 
-static void writeIntLine(File dataFile, uint16_t lineNumber, uint8_t data){
+static void writeIntLine(File dataFile, uint16_t lineNumber, uint32_t data){
     uint16_t currentLine = 0;
     String line = "";
     while(currentLine != lineNumber) {
@@ -30,6 +30,14 @@ static void writeIntLine(File dataFile, uint16_t lineNumber, uint8_t data){
     char temp[4];
     sprintf(temp,"%4d", data);
     dataFile.write(temp);
+}
+
+uint8_t storageWriteToFile(const String &fileName, uint8_t lineNumber, uint32_t data){
+    if(!SD.exists(fileName))
+        return 0;
+    File dataFile = SD.open(fileName);
+    writeIntLine(dataFile, lineNumber, data);
+    return 1;
 }
 
 void storageNewFile(){
@@ -97,6 +105,7 @@ uint8_t storageSaveParameters(){
 
 String* storageGetFiles(){
     File dir = SD.open("/");
+    String tempString;
     while (true) {
         File entry =  dir.openNextFile();
         if (! entry) {
@@ -106,9 +115,12 @@ String* storageGetFiles(){
         Serial.print(entry.name());
         if (!entry.isDirectory()) {
             // files have sizes, directories do not
+            tempString += entry.name() + (String) ",";
             Serial.print("\t\t");
             Serial.println(entry.size(), DEC);
         }
         entry.close();
     }
+
+
 }
