@@ -13,7 +13,7 @@ typedef enum {
 extern uint16_t parameterList[intCount];
 
 typedef enum {
-actCal=0, actTest, actAtt, actHelp, actCount, actSave, actLoad
+actCal=0, actTest, actAtt, actHelp, actSave, actLoad, actCount
 } actionParameter_t;
 
 typedef enum {

@@ -104,7 +104,7 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptAction, actSave,     "A.) Save Printer Config"},
                 {ptAction, actLoad,     "B.) Load Printer Config"},
                 {ptParam,  intStore,    "C.) Store test data every\n(0-1000) minutes"},
-                {ptNone,  0,        "D.) Main Menu"},
+                {ptMenu,  0,        "D.) Main Menu"},
                 {ptNone,   -1,     ""},
                 {ptNone, -1, ""},
         },
@@ -112,7 +112,7 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptNone, -1, "Settings"},
                 {ptAction, actAtt,      "A.) Attributes"},
                 {ptAction, actHelp,     "B.) Help"},
-                {ptNone,   0,           "C.) Main Menu"},
+                {ptMenu,   0,           "C.) Main Menu"},
                 {ptNone,  -1,       ""},
                 {ptNone,   -1,     ""},
                 {ptNone, -1, ""},
@@ -125,7 +125,7 @@ const struct interfaceAct_s interfaceActions[6] = {
         {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.",                        &processRun},
         {actAtt,  "",                                                                                                &processAttributes},
         {actHelp, "",                                                                                                &processHelp},
-        {actSave, "",                                                                                                &processLoad},
+        {actSave, "Save Data to File?",                                                                              &processLoad},
         {actLoad, "",                                                                                                &processSave}
 };
 
