@@ -128,6 +128,9 @@ const struct interfaceAct_s interfaceActions[6] = {
 };
 
 static struct {
+};
+
+static struct {
     uint8_t buttonRows[NUM_OF_ROWS];
     volatile uint8_t *rowsPortRegisters[NUM_OF_ROWS];
     uint8_t buttonColumns[NUM_OF_COLUMNS];
