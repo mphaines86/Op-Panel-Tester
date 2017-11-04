@@ -5,8 +5,11 @@ uint8_t storage_SD_loaded = 0;
 String currentWorkingFile = "";
 
 uint8_t storageBeginSD(){
-    if (!SD.begin(8))
+    if (!SD.begin(8)) {
+        Serial.println("No SD card found.");
         return 0;
+    }
+    Serial.println("SD card found.");
     return 1;
 }
 
@@ -64,49 +67,52 @@ uint8_t storageLoadSD(const String &fileName){
     return 1;
 }
 
-uint8_t storageSaveParameters(){
-    if(storage_SD_loaded == 0u) {
-        if(storageBeginSD() == 0u);
+uint8_t storageSaveParameters() {
+    if (storage_SD_loaded == 0u) {
+        Serial.println("First if");
+        if (storageBeginSD() == 0u)
             return 0;
         storage_SD_loaded = 1;
     }
 
-    char temp[8];
+    char temp[12];
 
-    if(currentWorkingFile == ""){
-        currentWorkingFile.toCharArray(temp,8);
+    if (currentWorkingFile != "") {
+        currentWorkingFile.toCharArray(temp, 12);
     }
-
-    uint8_t current_file_number = 0;
-    String lineData;
-    if(SD.exists("system_var")){
-        File dataFile = SD.open("system_var", FILE_WRITE);
-        lineData = readLine(dataFile, 0);
-        current_file_number = (uint8_t) lineData.toInt();
-        writeIntLine(dataFile, 0, ++current_file_number);
-        dataFile.close();
-    }
-    sprintf(temp, "%08d", current_file_number);
-
-    if(SD.exists(temp)) {
-        File dataFile = SD.open(temp);
-        for (uint16_t i : parameterList) {
-            dataFile.write(i);
-            dataFile.write('\n');
+    else {
+        uint8_t current_file_number = 0;
+        String lineData;
+        if (SD.exists("system_var")) {
+            File dataFile = SD.open("system_var", FILE_WRITE);
+            lineData = readLine(dataFile, 0);
+            current_file_number = (uint8_t) lineData.toInt();
+            writeIntLine(dataFile, 0, ++current_file_number);
+            dataFile.close();
         }
-        for (uint8_t i : booleanList) {
-            dataFile.write(i);
-            dataFile.write('\n');
-        }
-        dataFile.close();
+        sprintf(temp, "%08d.DAT", current_file_number);
     }
+    Serial.println(temp);
+    File dataFile = SD.open(temp);
+    for (uint16_t i : parameterList) {
+        Serial.println(i);
+        dataFile.write("%04d", i);
+        dataFile.write('\n');
+    }
+    for (uint8_t i : booleanList) {
+        Serial.println(i);
+        dataFile.write(i);
+        dataFile.write('\n');
+    }
+    dataFile.close();
+
     return 1;
 }
-
-String* storageGetFiles(){
+/*
+String* storageGetFiles(String *listOfStrings[]){
     File dir = SD.open("/");
     String tempString;
-    while (true) {
+    /*while (true) {
         File entry =  dir.openNextFile();
         if (! entry) {
             // no more files
@@ -115,12 +121,22 @@ String* storageGetFiles(){
         Serial.print(entry.name());
         if (!entry.isDirectory()) {
             // files have sizes, directories do not
-            tempString += entry.name() + (String) ",";
+            tempString += entry.name();
             Serial.print("\t\t");
             Serial.println(entry.size(), DEC);
         }
         entry.close();
     }
+    uint16_t string_length = tempString.length();
+    String string_array[string_length/12];
+    uint8_t current_file = 0;
+    for (int i = 0; i < string_length; ++i) {
+        string_array[current_file] += tempString[i];
+        if((i%12) == 0)
+            current_file++;
+    }
+    *listOfStrings = string_array;
 
+    return *listOfStrings;
 
-}
+}*/

@@ -2,6 +2,7 @@
 #include "utilities.h"
 #include "MessageWriter.h"
 #include "storage.h"
+#include "interface.h"
 
 uint8_t processCalibrate() {
     uint8_t cycle = 0;
@@ -16,11 +17,27 @@ uint8_t processCalibrate() {
 }
 
 uint8_t processRun() {
+
+    uint32_t currentIteration = 0;
+
+    for (int i = 8; i <= 13; i++)
+        tft.fillRect(60, i * 6, 340, 8, colorBar[i - 8]);
+
+    tft.setCursor(0, 24);
+    tft.setTextColor(HX8357_WHITE);
+    tft.setTextSize(2);
+    tft.println("Testing in Progress");
+    tft.setTextSize(1);
+    tft.println();
+    tft.println("Current Cycle Number:");
+    tft.setCursor(0,67);
+    tft.print(currentIteration);
     message_output_t outputMessage;
-    const char *memoryBank = "r0x60";
-    const char *commandParam = "4000";
-    writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) memoryBank,
-                      (char *) commandParam);
+    const char *memoryBank = "r0xab";
+    const char *commandParam = "0";
+    writerPrepMessage(&outputMessage, '\0', '\0', 'r', (char *) memoryBank, '\0');
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) memoryBank,
+    //                  (char *) commandParam);
     writerSendMessage(&outputMessage);
     return 1;
 }
@@ -39,7 +56,55 @@ uint8_t processSave() {
 }
 
 uint8_t processLoad() {
-    return 1;
+
+    tft.fillScreen(0x2924);
+    for (int i = 8; i <= 13; i++)
+        tft.fillRect(60, i * 6, 340, 8, colorBar[i - 8]);
+    tft.setCursor(0, 24);
+    tft.setTextColor(HX8357_WHITE);
+    tft.setTextSize(2);
+    tft.println("Select File");
+    tft.setTextSize(1);
+    uint8_t currentFileList = 0;
+    /*String *fileList = storageGetFiles();
+
+    for (int i = currentFileList; i < 6; ++i) {
+        tft.println(fileList[i]);
+    }
+    int8_t keyboardValue;
+    while(true){
+        keyboardValue = checkKeypad();
+        if (keyboardValue >= 1 && keyboardValue <= 6){
+            storageLoadSD(fileList[currentFileList + keyboardValue]);
+            return 0;
+        }
+        if (keyboardValue == 7){
+            if (currentFileList == 0){
+            }
+            else{
+                currentFileList-=5;
+                tft.setCursor(0,90);
+                for (int i = currentFileList; i < 6; ++i) {
+                    tft.println(fileList[i]);
+                }
+            }
+        }
+        if (keyboardValue == 9){
+            if(currentFileList ==250){
+            }
+            else{
+                currentFileList+=5;
+                tft.setCursor(0,90);
+                for (int i = currentFileList; i < 6; ++i) {
+                    tft.println(fileList[i]);
+                }
+            }
+        }
+        if (keyboardValue == 11){
+            return 0;
+        }
+    }*/
+    return 0;
 }
 
 const uint8_t fsrPin = 0;

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "interface.h"
 #include "SD.h"
+#include "MessageReader.h"
 
 int main() {
     init();
@@ -19,7 +20,10 @@ int main() {
     return 0;
 }
 
+struct message_t message;
+
 void setup(void) {
+    Serial3.begin(9600);
     Serial.begin(9600);
 
     for (uint8_t i = 47; i >= 41; i -= 2) { //rows
@@ -45,8 +49,13 @@ void setup(void) {
 
     sei();
     interfaceInit();
+    setupReader(&message);
 }
 
 void loop(void) {
     interfaceCheck();
+    if (read_message(&message) != 0u) {
+        //process_message(&message);
+    }
+
 }

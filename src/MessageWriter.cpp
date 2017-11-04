@@ -20,7 +20,10 @@ void writerSendMessage(struct message_output_t *message){
     Serial.print(' ');
     Serial.print(message->memoryBank);
     Serial.print(' ');
-    Serial.println(message->commandParam);
+    if(message->commandParam != '\0') {
+        Serial.print(message->commandParam);
+    }
+    Serial.print('\r');
     //for (int i = 0; i<message->length; i++){
       //Serial.print(outputBuffer[i]);
       //Serial.print(" ");

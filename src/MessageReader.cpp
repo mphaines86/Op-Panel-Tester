@@ -10,8 +10,9 @@ uint8_t read_message(struct message_t *message) {
 	//Serial.println(message->state);
 	switch (message->state) {
 		case WAITING_FOR_MESSAGE: {
-			if (Serial.available() > 0) {
-				message->data.unorganizedMessage[message->data.length] =(uint8_t)Serial.read();
+			if (Serial3.available() > 0) {
+				message->data.unorganizedMessage[message->data.length] =(uint8_t)Serial3.read();
+				Serial.println(message->data.unorganizedMessage[message->data.length]);
 				message->data.length++;
 				if (message->data.unorganizedMessage[message->data.length - 1] == 0xD){
 
