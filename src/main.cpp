@@ -32,6 +32,10 @@ void setup(void) {
     digitalWrite(5, LOW);
     pinMode(10, INPUT);
     pinMode(11, INPUT);
+    pinMode(22, OUTPUT);
+    pinMode(23, OUTPUT);
+    pinMode(24, INPUT_PULLUP);
+    pinMode(25, INPUT_PULLUP);
 
     for (uint8_t i = 47; i >= 41; i -= 2) { //rows
         pinMode(i, OUTPUT);
@@ -54,13 +58,15 @@ void setup(void) {
     TCCR3B |= (1 << CS32) | (0 << CS31) | (1 << CS30);
     // enable timer compare interrupt
 
-    EICRB |= (1 << ISC40) | (1 << ISC41);
-    EIMSK |= (1 << INT4);
-
     sei();
 
 
-    analogWrite(6, 255);
+    PORTA |= (1 << PA0);
+    PORTA |= (1 << PA1);
+
+    //PORTE &= ~(1 << PE3);
+    PORTE |= (1 << PE3);
+    PORTH &= ~(1 << PH3);
 
     setupReader(&message);
     interfaceInit();

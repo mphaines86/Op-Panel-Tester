@@ -65,9 +65,9 @@ struct interfaceAct_s {
     functionPtr_t actionFunction;
 };
 
-functionPtr_t actionFunctionList[6] = {&processCalibrate, &processRun,
+functionPtr_t actionFunctionList[7] = {&processCalibrate, &processRun,
                                        &processAttributes, &processHelp,
-                                       &processSave, &processLoad};
+                                       &processSave, &processLoad, &processHome};
 
 const struct interfaceParam_s interfaceParameters[5][7] = {
         {
@@ -110,21 +110,22 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptNone, -1, "Settings"},
                 {ptAction, actAtt,      "A.) Attributes"},
                 {ptAction, actHelp,     "B.) Help"},
-                {ptMenu,   0,           "C.) Main Menu"},
-                {ptNone,  -1,       ""},
+                {ptAction, actHome,     "C.) Home Arm"},
+                {ptMenu,  0,            "D.) Main Menu"},
                 {ptNone,   -1,     ""},
                 {ptNone, -1, ""},
         }
 };
 
 //TODO: Remove Fuction Pointers
-const struct interfaceAct_s interfaceActions[6] = {
+const struct interfaceAct_s interfaceActions[7] = {
         {actCal,  "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration.", &processCalibrate},
         {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.",                        &processRun},
         {actAtt,  "",                                                                                                &processAttributes},
         {actHelp, "",                                                                                                &processHelp},
         {actSave, "Save Testing Parameters?",                                                                        &processSave},
-        {actLoad, "",                                                                                                &processLoad}
+        {actLoad, "",                                                                                                &processLoad},
+        {actHome, "The Device will now be Homed.\n Please make sure the area is clear.",                             &processHome}
 };
 
 static struct {
@@ -196,6 +197,7 @@ static void drawParamMenu() {
     tft.setCursor(62, 200);
     tft.println("A.) Okay  B.) Cancel");
     tft.setCursor(304, 144);
+
 
 
 }
@@ -301,6 +303,10 @@ void handleParamInput() {
         if (interface.sourceNumber == 10) {
             parameterList[interface.workingParameterNumber] = interface.tempValue;
             interface.tempValue = 0;
+            if (interface.workingParameterNumber == intMaxAngle || interface.workingParameterNumber == intMinAngle){
+                processMove(parameterList[interface.workingParameterNumber]);
+            }
+
             drawMenu();
         } else if (interface.sourceNumber == 11) {
             interface.tempValue = 0;
