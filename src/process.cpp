@@ -4,6 +4,38 @@
 #include "storage.h"
 #include "interface.h"
 
+volatile uint8_t encoderPinALast = 0;
+volatile int32_t encoderPos = 0;
+
+void processBegin(){
+    /*message_output_t outputMessage{};
+    // writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "s r0x90 00 07 03 0d 00 90 00 01 c2 00 \r");
+    writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x90", (char *) "115200");
+    writerSendMessage(&outputMessage);
+    Serial3.flush();
+    Serial3.begin(115200);
+    writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "1000");
+    writerSendMessage(&outputMessage);
+    writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x24", (char *) "1");
+    writerSendMessage(&outputMessage);
+    delay(1000);
+    /*while(true){
+        writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "r0x02 0");
+        writerSendMessage(&outputMessage);
+        delay(1000);
+        writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "r0x02 -1000");
+        writerSendMessage(&outputMessage);
+        delay(1000);
+        writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "r0x02 0");
+        writerSendMessage(&outputMessage);
+        delay(1000);
+        writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "r0x02 1000");
+        writerSendMessage(&outputMessage);
+        delay(1000);
+    }*/
+
+}
+
 uint8_t processCalibrate() {
     uint8_t cycle = 0;
     TIMSK3 |= (1 << OCIE3A);
@@ -32,13 +64,21 @@ uint8_t processRun() {
     tft.println("Current Cycle Number:");
     tft.setCursor(0,67);
     tft.print(currentIteration);
-    message_output_t outputMessage;
-    const char *memoryBank = "r0xab";
-    const char *commandParam = "0";
-    writerPrepMessage(&outputMessage, '\0', '\0', 'r', (char *) memoryBank, '\0');
-    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) memoryBank,
-    //                  (char *) commandParam);
+
+    analogWrite(6, 0);
+    message_output_t outputMessage{};
+    writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x18", (char *) nullptr);
     writerSendMessage(&outputMessage);
+    delay(5000);
+    analogWrite(6, 127);
+    delay(1000);
+    analogWrite(6, 255);
+    delay(2000);
+
+    //processBegin();
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "100");
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x24", (char *) "1");
+    //writerSendMessage(&outputMessage);
     return 1;
 }
 
@@ -115,43 +155,25 @@ volatile uint32_t fsrConductance;
 volatile int32_t fsrForce;       // Finally, the resistance converted to force
 
 ISR(TIMER3_COMPA_vect) {
-    fsrReading = analogRead(fsrPin);
-    Serial.print("Analog reading = ");
-    Serial.println(fsrReading);
+    Serial.println("NO");
+}
 
-    // analog voltage reading ranges from about 0 to 1023 which maps to 0V to 5V (= 5000mV)
-    fsrVoltage = map(fsrReading, 0, 1023, 0, 5000);
-    Serial.print("Voltage reading in mV = ");
-    Serial.println(fsrVoltage);
-
-    if (fsrVoltage == 0) {
-        Serial.println("No pressure");
+ISR(INT4_vect){
+    uint8_t a;
+    a = static_cast<uint8_t>((PINE & (1 << PINE4)) >> 4);
+    uint8_t b;
+    b = static_cast<uint8_t >((PINE & (1 << PINE5)) >> 5);
+    if ((b == HIGH) && (a == HIGH)) {
+        //if (b == LOW) {
+        encoderPos--;
+        Serial.println('B');
     } else {
-        // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
-        // so FSR = ((Vcc - V) * R) / V        yay math!
-        fsrResistance = 5000 -
-                        fsrVoltage;     // fsrVoltage is in millivolts so 5V = 5000mV
-        fsrResistance *= 10000;                // 10K resistor
-        fsrResistance /= fsrVoltage;
-        Serial.print("FSR resistance in ohms = ");
-        Serial.println(fsrResistance);
-
-        fsrConductance = 1000000;           // we measure in micromhos so
-        fsrConductance /= fsrResistance;
-        Serial.print("Conductance in microMhos: ");
-        Serial.println(fsrConductance);
-
-        // Use the two FSR guide graphs to approximate the force
-        if (fsrConductance <= 1000) {
-            fsrForce = fsrConductance / 80 * 0.22481;
-            Serial.print("Force in Pounds: ");
-            Serial.println(fsrForce);
-        } else {
-            fsrForce = fsrConductance - 1000;
-            fsrForce /= 30;
-            Serial.print("Force in Pounds: ");
-            Serial.println(fsrForce * 0.22481);
-        }
+        Serial.println('F');
+        encoderPos++;
     }
-    Serial.println("--------------------");
+    //Serial.println(encoderPos);
+        //Serial.print ("/");
+    // }
+    // encoderPinALast = a;
+
 }

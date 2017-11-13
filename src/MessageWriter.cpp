@@ -8,22 +8,44 @@ void writerSendMessage(struct message_output_t *message){
     for(int i=3; i < message->length; i++){
       outputBuffer[i] = message->commandParam[i - 3];
     }*/
-    if(message->nodeId != '\0'){
-      Serial.print(message->nodeId);
-      Serial.print(' ');
+    //Serial3.write(message->commandParam, HEX);
+    //Serial.write(message->commandParam, HEX);
+    //if(message->nodeId != '\0'){
+    //  Serial3.write(message->nodeId);
+    //  Serial3.write(' ');
+    //}
+    //if(message->axisLetter != '\0'){
+    //  Serial3.write(message->axisLetter);
+    //  Serial3.write(' ');
+    //}
+    //Serial3.print(message->commandCode);
+    //Serial3.print(' ');
+    //Serial3.print(message->memoryBank);
+    //Serial3.print(' ');
+
+    Serial3.print('r');
+    //Serial3.print(' ', DEC);
+    //Serial3.print('r', DEC);
+    //Serial3.print('0', DEC);
+    //Serial3.print('x', DEC);
+    //Serial3.print('1', DEC);
+    //Serial3.print('8', DEC);
+
+    if(message->commandParam != nullptr) {
+        Serial3.print(message->commandParam);
     }
-    if(message->axisLetter != '\0'){
-      Serial.print(message->axisLetter);
-      Serial.print(' ');
-    }
+    Serial3.print('\r');
+
     Serial.print(message->commandCode);
     Serial.print(' ');
     Serial.print(message->memoryBank);
     Serial.print(' ');
-    if(message->commandParam != '\0') {
+
+    if(message->commandParam != nullptr) {
         Serial.print(message->commandParam);
     }
     Serial.print('\r');
+    Serial.println();
     //for (int i = 0; i<message->length; i++){
       //Serial.print(outputBuffer[i]);
       //Serial.print(" ");

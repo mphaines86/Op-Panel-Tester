@@ -123,11 +123,8 @@ const struct interfaceAct_s interfaceActions[6] = {
         {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.",                        &processRun},
         {actAtt,  "",                                                                                                &processAttributes},
         {actHelp, "",                                                                                                &processHelp},
-        {actSave, "Save Testing Parameters?",                                                                                                &processSave},
+        {actSave, "Save Testing Parameters?",                                                                        &processSave},
         {actLoad, "",                                                                                                &processLoad}
-};
-
-static struct {
 };
 
 static struct {
@@ -241,6 +238,8 @@ static void drawBoolMenu() {
 }
 
 void interfaceInit() {
+
+    processBegin();
     static uint8_t temporary1[] = {PL2, PL4, PL6, PG0};
     memcpy(interface.buttonRows, temporary1, sizeof temporary1);
 

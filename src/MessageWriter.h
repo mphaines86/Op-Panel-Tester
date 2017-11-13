@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define MAX_MESSAGE_LENGTH 10
+#define MAX_MESSAGE_LENGTH 128
 
 struct message_output_t {
   char nodeId;

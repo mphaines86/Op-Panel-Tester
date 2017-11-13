@@ -2,6 +2,7 @@
 #include "interface.h"
 #include "SD.h"
 #include "MessageReader.h"
+#include "MessageWriter.h"
 
 int main() {
     init();
@@ -24,7 +25,13 @@ struct message_t message;
 
 void setup(void) {
     Serial3.begin(9600);
-    Serial.begin(9600);
+    Serial.begin(115200);
+
+    pinMode(6, OUTPUT);
+    pinMode(5, OUTPUT);
+    digitalWrite(5, LOW);
+    pinMode(10, INPUT);
+    pinMode(11, INPUT);
 
     for (uint8_t i = 47; i >= 41; i -= 2) { //rows
         pinMode(i, OUTPUT);
@@ -47,14 +54,21 @@ void setup(void) {
     TCCR3B |= (1 << CS32) | (0 << CS31) | (1 << CS30);
     // enable timer compare interrupt
 
+    EICRB |= (1 << ISC40) | (1 << ISC41);
+    EIMSK |= (1 << INT4);
+
     sei();
-    interfaceInit();
+
+
+    analogWrite(6, 255);
+
     setupReader(&message);
+    interfaceInit();
 }
 
 void loop(void) {
     interfaceCheck();
-    if (read_message(&message) != 0u) {
+    if (read_message(&message)) {
         //process_message(&message);
     }
 
