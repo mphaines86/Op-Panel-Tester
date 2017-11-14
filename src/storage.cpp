@@ -108,11 +108,11 @@ uint8_t storageSaveParameters() {
 
     return 1;
 }
-/*
-String* storageGetFiles(String *listOfStrings[]){
+
+void storageGetFiles(Array * listOfFiles){
     File dir = SD.open("/");
     String tempString;
-    /*while (true) {
+    while (true) {
         File entry =  dir.openNextFile();
         if (! entry) {
             // no more files
@@ -128,15 +128,12 @@ String* storageGetFiles(String *listOfStrings[]){
         entry.close();
     }
     uint16_t string_length = tempString.length();
-    String string_array[string_length/12];
+    String string_array;
     uint8_t current_file = 0;
-    for (int i = 0; i < string_length; ++i) {
-        string_array[current_file] += tempString[i];
+    for (uint8_t i = 0; i < string_length; ++i) {
+        string_array += tempString[i];
         if((i%12) == 0)
+            insertArray(listOfFiles, (char) string_array.c_str());
             current_file++;
     }
-    *listOfStrings = string_array;
-
-    return *listOfStrings;
-
-}*/
+}

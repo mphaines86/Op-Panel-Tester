@@ -2,6 +2,7 @@
 #define STORAGE_H
 
 #include "Arduino.h"
+#include "utilities.h"
 
 extern uint8_t storage_SD_loaded;
 
@@ -17,16 +18,16 @@ actCal=0, actTest, actAtt, actHelp, actSave, actLoad, actHome, actCount
 } actionParameter_t;
 
 typedef enum {
-boolFail=0, boolCount
+boolFail=0, boolMove, boolCount
 } booleanParameter_t;
 
 extern uint8_t booleanList[boolCount];
 
 uint8_t storageSaveParameters();
 uint8_t storageBeginSD();
-uint8_t storageLoadSD(String fileName);
+uint8_t storageLoadSD(const String &fileName);
 void storageNewFile();
-String* storageGetFiles();
+void storageGetFiles(Array * listOfFiles);
 uint8_t storageWriteToFile(const String &fileName, uint8_t lineNumber,
                            uint32_t data);
 #endif

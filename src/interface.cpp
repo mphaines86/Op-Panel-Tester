@@ -111,8 +111,8 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptAction, actAtt,      "A.) Attributes"},
                 {ptAction, actHelp,     "B.) Help"},
                 {ptAction, actHome,     "C.) Home Arm"},
-                {ptMenu,  0,            "D.) Main Menu"},
-                {ptNone,   -1,     ""},
+                {ptMenu,  boolMove,     "D.) Move when setting Angle?" },
+                {ptMenu,   0,     "#.) Main Menu"},
                 {ptNone, -1, ""},
         }
 };
@@ -304,7 +304,8 @@ void handleParamInput() {
             parameterList[interface.workingParameterNumber] = interface.tempValue;
             interface.tempValue = 0;
             if (interface.workingParameterNumber == intMaxAngle || interface.workingParameterNumber == intMinAngle){
-                processMove(parameterList[interface.workingParameterNumber]);
+                if (booleanList[boolMove])
+                    processMove(parameterList[interface.workingParameterNumber]);
             }
 
             drawMenu();
@@ -402,7 +403,7 @@ static void handleUserInput(int16_t source) {
 
 }
 
-void checkKeypad() {
+int8_t checkKeypad() {
     *interface.rowsPortRegisters[interface.currentRow] &= ~(1
             << interface.buttonRows[interface.currentRow]);
     uint8_t i;
@@ -416,7 +417,7 @@ void checkKeypad() {
             interface.lastButtonPress[interface.currentRow][i] = 1;
             //Serial.print("Button Pressed: ");
             //Serial.println((interface.currentRow * NUM_OF_ROWS) + i);
-            handleUserInput((interface.currentRow * NUM_OF_ROWS) + i);
+            return ((interface.currentRow * NUM_OF_ROWS) + i);
 
         } else if ((boolean) output) {
             interface.lastButtonPress[interface.currentRow][i] = 0;
@@ -424,11 +425,17 @@ void checkKeypad() {
     }
     *interface.rowsPortRegisters[interface.currentRow] |= (1
             << interface.buttonRows[interface.currentRow]);
+
     ++interface.currentRow %= (NUM_OF_ROWS);
+
+    return -1;
 }
 
 void interfaceCheck() {
-    checkKeypad();
+    int8_t inputValue = checkKeypad();
+    
+    if(inputValue != -1)
+        handleUserInput(inputValue);
     if (interface.sourceNumber > -1) {
         switch (interface.activeMenu) {
             case ptMenu:

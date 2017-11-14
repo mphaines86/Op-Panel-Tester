@@ -8,28 +8,6 @@
 #define DEBOUNCE_MAX 4
 
 double armPosition = 0;
-uint8_t limitSwitchIntegrator = 0;
-
-static uint8_t debounce(uint16_t portRegister, uint8_t port){
-
-    uint8_t output = 0;
-
-    if (!(boolean) (portRegister & (1 << port))){
-        if (limitSwitchIntegrator > 0)
-            limitSwitchIntegrator--;
-    }
-    else if (limitSwitchIntegrator < DEBOUNCE_MAX)
-        limitSwitchIntegrator++;
-
-    if (limitSwitchIntegrator == 0)
-        output = 0;
-    else if (limitSwitchIntegrator >= DEBOUNCE_MAX){
-        output = 1;
-        limitSwitchIntegrator = DEBOUNCE_MAX;
-    }
-
-    return output;
-}
 
 void processBegin(){
 
@@ -104,17 +82,19 @@ uint8_t processLoad() {
     tft.setTextSize(2);
     tft.println("Select File");
     tft.setTextSize(1);
-    uint8_t currentFileList = 0;
-    /*String *fileList = storageGetFiles();
+    uint16_t currentFileList = 0;
+    Array fileList;
+    initArray(&fileList, 1);
+    storageGetFiles(&fileList);
 
     for (int i = currentFileList; i < 6; ++i) {
-        tft.println(fileList[i]);
+        tft.println(fileList.array[i]);
     }
     int8_t keyboardValue;
     while(true){
         keyboardValue = checkKeypad();
         if (keyboardValue >= 1 && keyboardValue <= 6){
-            storageLoadSD(fileList[currentFileList + keyboardValue]);
+            storageLoadSD(String(fileList.array[currentFileList + keyboardValue]));
             return 0;
         }
         if (keyboardValue == 7){
@@ -124,7 +104,7 @@ uint8_t processLoad() {
                 currentFileList-=5;
                 tft.setCursor(0,90);
                 for (int i = currentFileList; i < 6; ++i) {
-                    tft.println(fileList[i]);
+                    tft.println(fileList.array[i]);
                 }
             }
         }
@@ -135,14 +115,15 @@ uint8_t processLoad() {
                 currentFileList+=5;
                 tft.setCursor(0,90);
                 for (int i = currentFileList; i < 6; ++i) {
-                    tft.println(fileList[i]);
+                    tft.println(fileList.array[i]);
                 }
             }
         }
         if (keyboardValue == 11){
+
             return 0;
         }
-    }*/
+    }
     return 0;
 }
 
@@ -165,7 +146,7 @@ uint8_t processMove(uint16_t degree){
     PORTA |= (1 << PA1);
 
     uint16_t count = 0;
-    while (count < steps){
+    while (count < (uint16_t) steps){
         PORTH |= (1 << PH3);
         delayMicroseconds(20);
         PORTH &= ~(1 << PH3);
