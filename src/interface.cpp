@@ -125,7 +125,7 @@ const struct interfaceAct_s interfaceActions[7] = {
         {actHelp, "",                                                                                                &processHelp},
         {actSave, "Save Testing Parameters?",                                                                        &processSave},
         {actLoad, "",                                                                                                &processLoad},
-        {actHome, "The Device will now be Homed.\n Please make sure the area is clear.",                             &processHome}
+        {actHome, "The device will now be \n homed. Please make sure \n the area is clear.",                             &processHome}
 };
 
 static struct {
@@ -271,6 +271,11 @@ void interfaceInit() {
     tft.setRotation(3);
     interface.activePage = mainMenu;
     drawMenu();
+
+    parameterList[intMinAngle] = 20;
+    parameterList[intMaxAngle] = 120;
+    parameterList[intCycle] = 10;
+    booleanList[boolMove] = 1;
 
 }
 

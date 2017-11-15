@@ -47,12 +47,18 @@ uint8_t processRun() {
         while(PINA & (1 << PA3)){
 
         }
+        delay(100);
         processMove(parameterList[intMinAngle]);
         while(PINA & (1 << PA3)){
 
         }
-        currentIteration++;
+        delay(100);
         tft.setCursor(0, 134);
+        tft.setTextColor(HX8357_BLACK);
+        tft.print(currentIteration);
+        tft.setCursor(0, 134);
+        tft.setTextColor(HX8357_WHITE);
+        currentIteration++;
         tft.print(currentIteration);
     }
 
@@ -146,13 +152,17 @@ uint8_t processMove(uint16_t degree){
     PORTA |= (1 << PA1);
 
     uint16_t count = 0;
+    steps++
     while (count < (uint16_t) steps){
+        Serial.print(count);
+        Serial.print(" ");
         PORTH |= (1 << PH3);
-        delayMicroseconds(20);
+        delayMicroseconds(1000);
         PORTH &= ~(1 << PH3);
-        delayMicroseconds(20);
+        delayMicroseconds(1000);
         count++;
     }
+    Serial.println();
     PORTA &= ~(1 << PA1);
 
     return 1;
