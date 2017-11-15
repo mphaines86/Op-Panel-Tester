@@ -111,7 +111,7 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptAction, actAtt,      "A.) Attributes"},
                 {ptAction, actHelp,     "B.) Help"},
                 {ptAction, actHome,     "C.) Home Arm"},
-                {ptMenu,  boolMove,     "D.) Move when setting Angle?" },
+                {ptBool,  boolMove,     "D.) Move when setting Angle?" },
                 {ptMenu,   0,     "#.) Main Menu"},
                 {ptNone, -1, ""},
         }

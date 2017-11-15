@@ -82,12 +82,12 @@ uint8_t processLoad() {
 
     tft.fillScreen(0x2924);
     for (int i = 8; i <= 13; i++)
-        tft.fillRect(60, i * 6, 340, 8, colorBar[i - 8]);
+        tft.fillRect(60, i * 6, tft.width(), 8, colorBar[i - 8]);
     tft.setCursor(0, 24);
     tft.setTextColor(HX8357_WHITE);
     tft.setTextSize(2);
     tft.println("Select File");
-    tft.setTextSize(1);
+    tft.setTextSize(2);
     uint16_t currentFileList = 0;
     Array fileList;
     initArray(&fileList, 1);
@@ -130,7 +130,6 @@ uint8_t processLoad() {
             return 0;
         }
     }
-    return 0;
 }
 
 uint8_t processMove(uint16_t degree){
