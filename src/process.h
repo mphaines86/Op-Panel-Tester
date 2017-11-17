@@ -38,6 +38,7 @@ uint8_t processHelp();
 uint8_t processAttributes();
 uint8_t processSave();
 uint8_t processLoad();
+uint8_t processNew();
 uint8_t processHome();
 uint8_t processMove(uint16_t degree);
 

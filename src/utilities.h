@@ -3,7 +3,7 @@
 
 
 typedef struct {
-    char *array;
+    char * array;
     size_t used;
     size_t size;
 } Array;

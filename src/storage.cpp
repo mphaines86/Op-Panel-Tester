@@ -10,6 +10,7 @@ uint8_t storageBeginSD(){
         return 0;
     }
     Serial.println("SD card found.");
+    storage_SD_loaded = 1;
     return 1;
 }
 
@@ -30,16 +31,18 @@ static void writeIntLine(File dataFile, uint16_t lineNumber, uint32_t data){
         line = dataFile.readStringUntil('\n');
         currentLine++;
     }
-    char temp[4];
-    sprintf(temp,"%4d", data);
+    char temp[6];
+    sprintf(temp,"%6d", data);
     dataFile.write(temp);
 }
 
-uint8_t storageWriteToFile(const String &fileName, uint8_t lineNumber, uint32_t data){
+uint8_t storageWriteToFile(const String &fileName, uint32_t data){
     if(!SD.exists(fileName))
         return 0;
-    File dataFile = SD.open(fileName);
-    writeIntLine(dataFile, lineNumber, data);
+    File dataFile = SD.open(fileName, FILE_WRITE);
+    char temp[6];
+    sprintf(temp,"%6d\n", data);
+    dataFile.write(temp);
     return 1;
 }
 
@@ -54,9 +57,17 @@ void storageNewFile(){
 }
 
 uint8_t storageLoadSD(const String &fileName){
+    Serial.println(SD.exists(fileName));
     if(SD.exists(fileName)){
         File dataFile = SD.open(fileName);
+        /*while (dataFile.available()){
+            char * tempBuffer[4];
+            dataFile.read(tempBuffer, 4);
+            dataFile.read();
+            Serial.write(*tempBuffer);
+        }*/
         for (uint16_t &i : parameterList){
+            //Serial.println(dataFile.readStringUntil('\n').toInt());
             i = (uint16_t) dataFile.readStringUntil('\n').toInt();
         }
         for (uint8_t &i : booleanList) {
@@ -72,7 +83,6 @@ uint8_t storageSaveParameters() {
         Serial.println("First if");
         if (storageBeginSD() == 0u)
             return 0;
-        storage_SD_loaded = 1;
     }
 
     char temp[12];
@@ -83,34 +93,43 @@ uint8_t storageSaveParameters() {
     else {
         uint8_t current_file_number = 0;
         String lineData;
-        if (SD.exists("system_var")) {
-            File dataFile = SD.open("system_var", FILE_WRITE);
+        if (SD.exists("SYSTEMPF.VAR")) {
+            File dataFile = SD.open("SYSTEMPF.VAR", FILE_WRITE);
             lineData = readLine(dataFile, 0);
             current_file_number = (uint8_t) lineData.toInt();
             writeIntLine(dataFile, 0, ++current_file_number);
             dataFile.close();
         }
-        sprintf(temp, "%08d.DAT", current_file_number);
+        sprintf(temp, "%08d.DAT", current_file_number+1);
     }
     Serial.println(temp);
-    File dataFile = SD.open(temp);
+    File dataFile = SD.open(temp, O_WRITE | O_CREAT | O_TRUNC);
     for (uint16_t i : parameterList) {
-        Serial.println(i);
-        dataFile.write("%04d", i);
+        char currentParam[6];
+        sprintf(currentParam, "%06d", i);
+        dataFile.write(currentParam);
         dataFile.write('\n');
     }
     for (uint8_t i : booleanList) {
-        Serial.println(i);
-        dataFile.write(i);
+        char currentParam[6];
+        sprintf(currentParam, "%06d", i);
+        dataFile.write(currentParam);
         dataFile.write('\n');
     }
     dataFile.close();
+    Serial.println(SD.exists(temp));
 
     return 1;
 }
 
-void storageGetFiles(Array * listOfFiles){
+uint8_t storageGetFiles(Array * listOfFiles){
+    if (storage_SD_loaded == 0u) {
+        if (storageBeginSD() == 0u)
+            return 0;
+    }
+
     File dir = SD.open("/");
+    Serial.println(dir.name());
     String tempString;
     while (true) {
         File entry =  dir.openNextFile();
@@ -128,12 +147,15 @@ void storageGetFiles(Array * listOfFiles){
         entry.close();
     }
     uint16_t string_length = tempString.length();
+    Serial.println(string_length);
     String string_array;
     uint8_t current_file = 0;
-    for (uint8_t i = 0; i < string_length; ++i) {
-        string_array += tempString[i];
-        if((i%12) == 0)
-            insertArray(listOfFiles, (char) string_array.c_str());
+    for (uint16_t i = 0; i < string_length; ++i) {
+        insertArray(listOfFiles, (char) tempString[i]);
+        if(((i+1)%12) == 0){
             current_file++;
+        }
     }
+
+    return current_file;
 }

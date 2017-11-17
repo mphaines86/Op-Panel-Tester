@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "interface.h"
-#include "SD.h"
 #include "MessageReader.h"
 #include "MessageWriter.h"
+#include "storage.h"
 
 int main() {
     init();
@@ -62,7 +62,7 @@ void setup(void) {
 
 
     PORTA |= (1 << PA0);
-    PORTA |= (1 << PA1);
+    PORTA &= ~(1 << PA1);
 
     //PORTE &= ~(1 << PE3);
     PORTE |= (1 << PE3);
@@ -70,6 +70,7 @@ void setup(void) {
 
     setupReader(&message);
     interfaceInit();
+    storageBeginSD();
 }
 
 void loop(void) {

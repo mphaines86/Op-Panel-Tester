@@ -14,7 +14,7 @@ typedef enum {
 extern uint16_t parameterList[intCount];
 
 typedef enum {
-actCal=0, actTest, actAtt, actHelp, actSave, actLoad, actHome, actCount
+actCal=0, actTest, actAtt, actHelp, actSave, actLoad, actNew, actHome, actCount
 } actionParameter_t;
 
 typedef enum {
@@ -27,7 +27,7 @@ uint8_t storageSaveParameters();
 uint8_t storageBeginSD();
 uint8_t storageLoadSD(const String &fileName);
 void storageNewFile();
-void storageGetFiles(Array * listOfFiles);
-uint8_t storageWriteToFile(const String &fileName, uint8_t lineNumber,
+uint8_t storageGetFiles(Array * listOfFiles);
+uint8_t storageWriteToFile(const String &fileName,
                            uint32_t data);
 #endif

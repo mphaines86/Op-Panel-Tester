@@ -12,6 +12,7 @@ extern const uint16_t colorBar[];
 extern Adafruit_HX8357 tft;
 void interfaceCheck();
 void interfaceInit();
+int8_t handleUserInput(int16_t  source);
 int8_t checkKeypad();
 
 #endif

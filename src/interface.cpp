@@ -15,7 +15,7 @@
 // These are 'flexible' lines that can be changed
 #define TFT_CS 48
 #define TFT_DC 46
-#define TFT_RST 8 // RST can be set to -1 if you tie it to Arduino's reset
+#define TFT_RST 2 // RST can be set to -1 if you tie it to Arduino's reset
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
@@ -65,9 +65,9 @@ struct interfaceAct_s {
     functionPtr_t actionFunction;
 };
 
-functionPtr_t actionFunctionList[7] = {&processCalibrate, &processRun,
+functionPtr_t actionFunctionList[8] = {&processCalibrate, &processRun,
                                        &processAttributes, &processHelp,
-                                       &processSave, &processLoad, &processHome};
+                                       &processSave, &processLoad, &processNew, &processHome};
 
 const struct interfaceParam_s interfaceParameters[5][7] = {
         {
@@ -101,9 +101,9 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptNone, -1, "Storage"},
                 {ptAction, actSave,     "A.) Save Printer Config"},
                 {ptAction, actLoad,     "B.) Load Printer Config"},
-                {ptParam,  intStore,    "C.) Store test data every\n(0-1000) minutes"},
-                {ptMenu,  0,        "D.) Main Menu"},
-                {ptNone,   -1,     ""},
+                {ptAction, actNew,      "C.) New Printer Config"},
+                {ptParam,  intStore,    "D.) Store test data every\n(0-1000) minutes"},
+                {ptMenu,   0,           "#.) Main Menu"},
                 {ptNone, -1, ""},
         },
         {
@@ -112,20 +112,21 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptAction, actHelp,     "B.) Help"},
                 {ptAction, actHome,     "C.) Home Arm"},
                 {ptBool,  boolMove,     "D.) Move when setting Angle?" },
-                {ptMenu,   0,     "#.) Main Menu"},
+                {ptMenu,   0,           "#.) Main Menu"},
                 {ptNone, -1, ""},
         }
 };
 
 //TODO: Remove Fuction Pointers
-const struct interfaceAct_s interfaceActions[7] = {
+const struct interfaceAct_s interfaceActions[8] = {
         {actCal,  "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration.", &processCalibrate},
         {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.",                        &processRun},
         {actAtt,  "",                                                                                                &processAttributes},
         {actHelp, "",                                                                                                &processHelp},
         {actSave, "Save Testing Parameters?",                                                                        &processSave},
         {actLoad, "",                                                                                                &processLoad},
-        {actHome, "The device will now be \n homed. Please make sure \n the area is clear.",                             &processHome}
+        {actNew,  "A new set of parameters \nwill be initilized. All \nunsaved data will be lost.",                  &processNew},
+        {actHome, "The device will now be \nhomed. Please make sure \nthe area is clear.",                           &processHome}
 };
 
 static struct {
@@ -280,7 +281,7 @@ void interfaceInit() {
 }
 
 void handleActionInput() {
-    if ((boolean) interfaceActions[interface.workingParameterNumber].text) {
+    if (strcmp(interfaceActions[interface.workingParameterNumber].text,"") != 0) {
         if (interface.sourceNumber == 10) {
             //if((*interfaceActions.actionFunction[interface.workingParameterNumber])())
             if ((boolean) (*actionFunctionList[interface.workingParameterNumber])())
@@ -289,7 +290,11 @@ void handleActionInput() {
             drawMenu();
         }
     } else {
-        drawMenu();
+        Serial.println("Cool");
+        if ((boolean) (*actionFunctionList[interface.workingParameterNumber])())
+            drawMenu();
+        else
+            drawMenu();
     }
 }
 
@@ -304,7 +309,10 @@ void handleBoolInput() {
 }
 
 void handleParamInput() {
+    Serial.print("Current Value:");
+    Serial.println(parameterList[interface.workingParameterNumber]);
     if (interface.sourceNumber >= 10) {
+        Serial.println();
         if (interface.sourceNumber == 10) {
             parameterList[interface.workingParameterNumber] = interface.tempValue;
             interface.tempValue = 0;
@@ -323,6 +331,7 @@ void handleParamInput() {
     if (interface.sourceNumber > -1) {
         tft.print(interface.sourceNumber);
         interface.tempValue = interface.tempValue * 10 + interface.sourceNumber;
+        Serial.print(interface.tempValue);
     }
 }
 
@@ -342,66 +351,52 @@ static void handleMenuInput(const struct interfaceParam_s *inter) {
             drawBoolMenu();
             return;
         case ptAction:
-            drawActionMenu();
+            if (strcmp(interfaceActions[interface.workingParameterNumber].text, "") != 0)
+                drawActionMenu();
             return;
         case ptNone:
+            interface.activeMenu = ptMenu;
             return;
 
     }
 }
 
-static void handleUserInput(int16_t source) {
+int8_t handleUserInput(int16_t source) {
     switch (source) {
         case kb1:
-            interface.sourceNumber = 1;
-            return;
+            return 1;
         case kb2:
-            interface.sourceNumber = 2;
-            return;
+            return 2;
         case kb3:
-            interface.sourceNumber = 3;
-            return;
+            return 3;
         case kb4:
-            interface.sourceNumber = 4;
-            return;
+            return 4;
         case kb5:
-            interface.sourceNumber = 5;
-            return;
+            return 5;
         case kb6:
-            interface.sourceNumber = 6;
-            return;
+            return 6;
         case kb7:
-            interface.sourceNumber = 7;
-            return;
+            return 7;
         case kb8:
-            interface.sourceNumber = 8;
-            return;
+            return 8;
         case kb9:
-            interface.sourceNumber = 9;
-            return;
+            return 9;
         case kb0:
-            interface.sourceNumber = 0;
-            return;
+            return 0;
         case kbA:
-            interface.sourceNumber = 10;
-            return;
+            return 10;
         case kbB:
-            interface.sourceNumber = 11;
-            return;
+            return 11;
         case kbC:
-            interface.sourceNumber = 12;
-            return;
+            return 12;
         case kbD:
-            interface.sourceNumber = 13;
-            return;
+            return 13;
         case kbPound:
-            interface.sourceNumber = 14;
-            return;
+            return 14;
         case kbAsterisk:
-            interface.sourceNumber = 15;
-            return;
+            return 15;
         default:
-            return;
+            return -1;
 
     }
 
@@ -440,7 +435,7 @@ void interfaceCheck() {
     int8_t inputValue = checkKeypad();
     
     if(inputValue != -1)
-        handleUserInput(inputValue);
+        interface.sourceNumber = handleUserInput(inputValue);
     if (interface.sourceNumber > -1) {
         switch (interface.activeMenu) {
             case ptMenu:
@@ -458,6 +453,7 @@ void interfaceCheck() {
                 handleActionInput();
                 break;
             case ptNone:
+                Serial.println("Do Nothing");
                 break;
         }
         interface.sourceNumber = -1;

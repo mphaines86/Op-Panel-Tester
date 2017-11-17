@@ -52,6 +52,9 @@ uint8_t processRun() {
         while(PINA & (1 << PA3)){
 
         }
+        if(currentIteration % parameterList[intStore] == 0){
+            storageWriteToFile("RUNDATA.TXT", 0);
+        }
         delay(100);
         tft.setCursor(0, 134);
         tft.setTextColor(HX8357_BLACK);
@@ -78,11 +81,15 @@ uint8_t processSave() {
     return 1;
 }
 
+uint8_t processNew(){
+    storageNewFile();
+}
+
 uint8_t processLoad() {
 
     tft.fillScreen(0x2924);
-    for (int i = 8; i <= 13; i++)
-        tft.fillRect(60, i * 6, tft.width(), 8, colorBar[i - 8]);
+    for (int i = 0; i <= 5; i++)
+        tft.fillRect(0, i * 6, tft.width(), 8, colorBar[i]);
     tft.setCursor(0, 24);
     tft.setTextColor(HX8357_WHITE);
     tft.setTextSize(2);
@@ -91,17 +98,31 @@ uint8_t processLoad() {
     uint16_t currentFileList = 0;
     Array fileList;
     initArray(&fileList, 1);
-    storageGetFiles(&fileList);
-
+    uint8_t totalFiles = storageGetFiles(&fileList);
+    if(!totalFiles)
+        return 0;
     for (int i = currentFileList; i < 6; ++i) {
-        tft.println(fileList.array[i]);
+        if (i == totalFiles)
+            break;
+        for (uint8_t j = 0; j < 12; ++j){
+            tft.print(fileList.array[j + i * 12]);
+        }
+        tft.println();
     }
     int8_t keyboardValue;
     while(true){
         keyboardValue = checkKeypad();
+        keyboardValue = handleUserInput(keyboardValue);
         if (keyboardValue >= 1 && keyboardValue <= 6){
-            storageLoadSD(String(fileList.array[currentFileList + keyboardValue]));
-            return 0;
+            char desiredFile[12];
+            for (uint8_t i =0; i < 12; i++) {
+                desiredFile[i] = fileList.array[(currentFileList + keyboardValue -1) * 12 + i];
+                //Serial.print((currentFileList + keyboardValue - 1) * 12 + i);
+            }
+            Serial.println(desiredFile);
+            storageLoadSD((String) desiredFile);
+            freeArray(&fileList);
+            return 1;
         }
         if (keyboardValue == 7){
             if (currentFileList == 0){
@@ -126,7 +147,7 @@ uint8_t processLoad() {
             }
         }
         if (keyboardValue == 11){
-
+            freeArray(&fileList);
             return 0;
         }
     }
@@ -151,7 +172,7 @@ uint8_t processMove(uint16_t degree){
     PORTA |= (1 << PA1);
 
     uint16_t count = 0;
-    steps++
+    steps++;
     while (count < (uint16_t) steps){
         Serial.print(count);
         Serial.print(" ");
