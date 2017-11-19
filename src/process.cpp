@@ -28,6 +28,7 @@ uint8_t processCalibrate() {
 uint8_t processRun() {
 
     uint32_t currentIteration = 0;
+    uint32_t runStart = (uint32_t) millis();
 
     tft.fillScreen(0x2924);
     for (int i = 0; i <= 5; i++)
@@ -44,18 +45,29 @@ uint8_t processRun() {
 
     while (currentIteration < parameterList[intCycle]) {
         processMove(parameterList[intMaxAngle]);
+        uint8_t counter = 0;
         while(PINA & (1 << PA3)){
-
+            if (!counter){
+                if(currentIteration % parameterList[intStore] == 0){
+                    storageWriteToFile("RUNDATA.TXT", 0);
+                }
+                counter = 1;
+            }
         }
-        delay(100);
-        processMove(parameterList[intMinAngle]);
+        delay(parameterList[intDelay]);
+        processMove(parameterList[intMinAngle] * 100);
+        counter = 0;
         while(PINA & (1 << PA3)){
+            if (!counter){
+                char *temp = nullptr;
+                sprintf(temp, "%6d\n%8d", currentIteration, (uint32_t)
+                        ((millis() - runStart) / 1000));
+                storageWriteLine("SYSTEM.VAR", 2, temp);
+                counter = 1;
+            }
+        }
 
-        }
-        if(currentIteration % parameterList[intStore] == 0){
-            storageWriteToFile("RUNDATA.TXT", 0);
-        }
-        delay(100);
+        delay(parameterList[intDelay] * 100);
         tft.setCursor(0, 134);
         tft.setTextColor(HX8357_BLACK);
         tft.print(currentIteration);
@@ -83,6 +95,7 @@ uint8_t processSave() {
 
 uint8_t processNew(){
     storageNewFile();
+    return 1;
 }
 
 uint8_t processLoad() {
@@ -117,7 +130,6 @@ uint8_t processLoad() {
             char desiredFile[12];
             for (uint8_t i =0; i < 12; i++) {
                 desiredFile[i] = fileList.array[(currentFileList + keyboardValue -1) * 12 + i];
-                //Serial.print((currentFileList + keyboardValue - 1) * 12 + i);
             }
             Serial.println(desiredFile);
             storageLoadSD((String) desiredFile);
@@ -177,9 +189,9 @@ uint8_t processMove(uint16_t degree){
         Serial.print(count);
         Serial.print(" ");
         PORTH |= (1 << PH3);
-        delayMicroseconds(1000);
+        delayMicroseconds(2000);
         PORTH &= ~(1 << PH3);
-        delayMicroseconds(1000);
+        delayMicroseconds(2000);
         count++;
     }
     Serial.println();

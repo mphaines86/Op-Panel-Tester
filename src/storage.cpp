@@ -24,6 +24,24 @@ static String readLine(File dataFile, uint16_t lineNumber){
     return line;
 }
 
+uint8_t storageWriteLine(const String &fileName, uint16_t lineNumber, char * data){
+    uint16_t currentLine = 0;
+    String line = "";
+    File dataFile;
+    dataFile = SD.open(fileName, O_WRITE | O_CREAT | O_TRUNC);
+    while(currentLine != lineNumber) {
+        line = dataFile.readStringUntil('\n');
+        if (line == ""){
+            return 0;
+        }
+        currentLine++;
+    }
+    dataFile.write(data);
+
+    return 1;
+
+}
+
 static void writeIntLine(File dataFile, uint16_t lineNumber, uint32_t data){
     uint16_t currentLine = 0;
     String line = "";
@@ -43,6 +61,7 @@ uint8_t storageWriteToFile(const String &fileName, uint32_t data){
     char temp[6];
     sprintf(temp,"%6d\n", data);
     dataFile.write(temp);
+    dataFile.close();
     return 1;
 }
 
@@ -60,12 +79,6 @@ uint8_t storageLoadSD(const String &fileName){
     Serial.println(SD.exists(fileName));
     if(SD.exists(fileName)){
         File dataFile = SD.open(fileName);
-        /*while (dataFile.available()){
-            char * tempBuffer[4];
-            dataFile.read(tempBuffer, 4);
-            dataFile.read();
-            Serial.write(*tempBuffer);
-        }*/
         for (uint16_t &i : parameterList){
             //Serial.println(dataFile.readStringUntil('\n').toInt());
             i = (uint16_t) dataFile.readStringUntil('\n').toInt();
@@ -93,8 +106,8 @@ uint8_t storageSaveParameters() {
     else {
         uint8_t current_file_number = 0;
         String lineData;
-        if (SD.exists("SYSTEMPF.VAR")) {
-            File dataFile = SD.open("SYSTEMPF.VAR", FILE_WRITE);
+        if (SD.exists("SYSTEM.VAR")) {
+            File dataFile = SD.open("SYSTEM.VAR", O_WRITE | O_CREAT | O_TRUNC);
             lineData = readLine(dataFile, 0);
             current_file_number = (uint8_t) lineData.toInt();
             writeIntLine(dataFile, 0, ++current_file_number);

@@ -8,7 +8,7 @@ extern uint8_t storage_SD_loaded;
 
 typedef enum {
   intSpeed=0, intMaxAngle, intMinAngle, intCycle, intMaxForce, intMinForce,
-  intError, intStore, intCount,
+  intError, intStore, intDelay, intCount,
 } intParameter_t;
 
 extern uint16_t parameterList[intCount];
@@ -26,6 +26,7 @@ extern uint8_t booleanList[boolCount];
 uint8_t storageSaveParameters();
 uint8_t storageBeginSD();
 uint8_t storageLoadSD(const String &fileName);
+uint8_t storageWriteLine(const String &fileName, uint16_t lineNumber, char * data);
 void storageNewFile();
 uint8_t storageGetFiles(Array * listOfFiles);
 uint8_t storageWriteToFile(const String &fileName,

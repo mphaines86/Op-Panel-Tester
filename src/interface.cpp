@@ -12,21 +12,24 @@
 #include "../lib/Adafruit_GFX/Fonts/FreeSans9pt7b.h"
 
 #define DEBOUNCE_MAX 4
-// These are 'flexible' lines that can be changed
 #define TFT_CS 48
 #define TFT_DC 46
 #define TFT_RST 2 // RST can be set to -1 if you tie it to Arduino's reset
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
+// These are the RGB values for the top bar on each screen
 const uint16_t colorBar[] = {0x5ACA, 0x52A9, 0x4A48, 0x4228, 0x4207, 0x39E7};
+
 uint8_t booleanList[boolCount];
 uint16_t parameterList[intCount];
 
+// TODO: Delete if never used
 enum interfacePage_e {
     mainMenu = 0, STP, CT, S
 };
 
+// enum of keyboard buttons based off their keyboard position
 enum interfaceKeypadButton_e {
     kbA = 0,
     kb3,
@@ -46,25 +49,28 @@ enum interfaceKeypadButton_e {
     kbAsterisk
 };
 
+// Enumeration of each type of interface action
 enum interfaceParamType_e {
     ptMenu = 0, ptParam, ptAction, ptBool, ptNone
 };
 
+
+// The structure is used to organize and link various aspects of the menu screen
 struct interfaceParam_s {
     enum interfaceParamType_e type;
     int8_t number;
     const char *name;
 };
 
-typedef uint8_t (*functionPtr_t)();
-
-//TODO: Remove function pointers
+// Used when defining the okay/cancel menu of all actionParameters
 struct interfaceAct_s {
     actionParameter_t type;
     const char *text;
-    functionPtr_t actionFunction;
 };
 
+typedef uint8_t (*functionPtr_t)();
+
+// List of pointers to functions
 functionPtr_t actionFunctionList[8] = {&processCalibrate, &processRun,
                                        &processAttributes, &processHelp,
                                        &processSave, &processLoad, &processNew, &processHome};
@@ -81,11 +87,11 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
         },
         {
                 {ptNone, -1, "Set Testing Parameters"},
-                {ptParam,  intSpeed,    "A.) Set Speed (0 - 100)"},
-                {ptParam,  intMaxAngle, "B.) Max Angle (0 - 90)"},
-                {ptParam,  intMinAngle, "C.) Min Angle (0 - 90)"},
-                {ptParam, intCycle, "D.) Number of Cycles"},
-                {ptMenu,   2,      "#.) Force Setup & Calibration"},
+                {ptParam,  intSpeed,    "A.) Set Speed (0 - 255)"},
+                {ptParam,  intMaxAngle, "B.) Max Angle (0 - 180)"},
+                {ptParam,  intMinAngle, "C.) Min Angle (0 - 180)"},
+                {ptParam,  intCycle,    "D.) Number of Cycles"},
+                {ptParam,  intDelay,    "#.) Cycle Delay (0 - 255)"},
                 {ptMenu, 0,  "*.) Main Menu"},
         },
         {
@@ -102,14 +108,14 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptAction, actSave,     "A.) Save Printer Config"},
                 {ptAction, actLoad,     "B.) Load Printer Config"},
                 {ptAction, actNew,      "C.) New Printer Config"},
-                {ptParam,  intStore,    "D.) Store test data every\n(0-1000) minutes"},
+                {ptParam,  intStore,    "D.) Store test data every\n(0-) cycles"},
                 {ptMenu,   0,           "#.) Main Menu"},
                 {ptNone, -1, ""},
         },
         {
                 {ptNone, -1, "Settings"},
                 {ptAction, actAtt,      "A.) Attributes"},
-                {ptAction, actHelp,     "B.) Help"},
+                {ptAction, actHelp,     "B.) Log"},
                 {ptAction, actHome,     "C.) Home Arm"},
                 {ptBool,  boolMove,     "D.) Move when setting Angle?" },
                 {ptMenu,   0,           "#.) Main Menu"},
@@ -117,38 +123,39 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
         }
 };
 
-//TODO: Remove Fuction Pointers
 const struct interfaceAct_s interfaceActions[8] = {
-        {actCal,  "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration.", &processCalibrate},
-        {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.",                        &processRun},
-        {actAtt,  "",                                                                                                &processAttributes},
-        {actHelp, "",                                                                                                &processHelp},
-        {actSave, "Save Testing Parameters?",                                                                        &processSave},
-        {actLoad, "",                                                                                                &processLoad},
-        {actNew,  "A new set of parameters \nwill be initilized. All \nunsaved data will be lost.",                  &processNew},
-        {actHome, "The device will now be \nhomed. Please make sure \nthe area is clear.",                           &processHome}
+        {actCal,  "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration." },
+        {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing."                        },
+        {actAtt,  ""                                                                                                },
+        {actHelp, ""                                                                                                },
+        {actSave, "Save Testing Parameters?"                                                                        },
+        {actLoad, ""                                                                                                },
+        {actNew,  "A new set of parameters \nwill be initilized. All \nunsaved data will be lost."                  },
+        {actHome, "The device will now be \nhomed. Please make sure \nthe area is clear."                           }
 };
 
+// Defining a struct to organize interface values
 static struct {
-    uint8_t buttonRows[NUM_OF_ROWS];
-    volatile uint8_t *rowsPortRegisters[NUM_OF_ROWS];
-    uint8_t buttonColumns[NUM_OF_COLUMNS];
-    volatile uint8_t *columnsPortRegisters[NUM_OF_COLUMNS];
-    uint8_t currentRow;
+    uint8_t buttonRows[NUM_OF_ROWS]; // Keeps track of what pin on the MC the keypad row correlates to
+    volatile uint8_t *rowsPortRegisters[NUM_OF_ROWS]; // keeps track of what port on the MC is correlated to each row
+    uint8_t buttonColumns[NUM_OF_COLUMNS]; // Keeps track of current keypad column
+    volatile uint8_t *columnsPortRegisters[NUM_OF_COLUMNS]; // Keeps track of what pin on the MC the keypad column correlates to
+    uint8_t currentRow; // Keeps track of the current row we are looking to see if there has been input
 
-    uint8_t integrator[NUM_OF_ROWS][NUM_OF_COLUMNS];
-    uint8_t lastButtonPress[NUM_OF_ROWS][NUM_OF_COLUMNS];
+    uint8_t integrator[NUM_OF_ROWS][NUM_OF_COLUMNS]; // used for the debounce routine
+    uint8_t lastButtonPress[NUM_OF_ROWS][NUM_OF_COLUMNS]; // Keeps track of the last button the was pressed
     enum interfacePage_e activePage;
-    enum interfaceParamType_e activeMenu;
-    int8_t workingParameterNumber;
-    int8_t sourceNumber;
+    enum interfaceParamType_e activeMenu; // Used to determine which page of the menu screen we are in
+    int8_t workingParameterNumber; // Determines which parameter has been selected from parameterList or booleanList in storage.h
+    int8_t sourceNumber; // Used to determine the current active secondary index of interfaceParameters
     uint8_t tempValue;
 
 } interface;
 
+// Used to avoid a "bounce" of the input from the keypad
 static uint8_t debounce(uint8_t portRegister, uint8_t port, uint8_t row,
                         uint8_t column) {
-    //cool++;
+
     uint8_t output = 0;
 
     if (!(boolean) (portRegister & (1 << port))) {
@@ -167,6 +174,7 @@ static uint8_t debounce(uint8_t portRegister, uint8_t port, uint8_t row,
     return output;
 }
 
+// General function used to draw a menu
 static void drawMenu() {
 
     interface.activeMenu = ptMenu;
@@ -184,7 +192,7 @@ static void drawMenu() {
         tft.println(interfaceParameters[interface.activePage][i].name);
 }
 
-
+// Draws the menu used for inputting parameter values
 static void drawParamMenu() {
     for (int i = 8; i <= 13; i++)
         tft.fillRect(60, i * 6, 340, 8, colorBar[i - 8]);
@@ -203,6 +211,7 @@ static void drawParamMenu() {
 
 }
 
+// Draws the Okay/Cancel menu for actions
 static void drawActionMenu() {
     tft.fillScreen(0x2924);
     for (int i = 0; i <= 5; i++)
@@ -222,6 +231,7 @@ static void drawActionMenu() {
 
 }
 
+// Draws the menu for yes/no parameters
 static void drawBoolMenu() {
     for (int i = 8; i <= 13; i++)
         tft.fillRect(60, i * 6, 340, 8, colorBar[i - 8]);
@@ -240,9 +250,13 @@ static void drawBoolMenu() {
     tft.println("B.) No");
 }
 
+// Initiate the interface
 void interfaceInit() {
 
+    // TODO: Remove if never used
     processBegin();
+
+    // Initialize all of the variable that need to point the pins and registers on the MC
     static uint8_t temporary1[] = {PL2, PL4, PL6, PG0};
     memcpy(interface.buttonRows, temporary1, sizeof temporary1);
 
@@ -255,6 +269,7 @@ void interfaceInit() {
     static volatile uint8_t *temporary4[] = {&PINC, &PINC, &PINC, &PING};
     memcpy(interface.columnsPortRegisters, temporary4, sizeof temporary4);
 
+    // Initialize all button pins to the high state and set the integrator so that the debounce responds correctly
     interface.currentRow = 0;
     for (uint8_t i = 0; i < NUM_OF_ROWS; i++) {
         *interface.rowsPortRegisters[i] |= (1 << interface.buttonRows[i]);
@@ -263,16 +278,20 @@ void interfaceInit() {
         }
     }
 
+    // Initialize all parameters to 0
     for (uint16_t &i : parameterList) {
         i = 0;
     }
-    //*interface.rowsPortRegisters[0] = (1 << interface.buttonRows[0]);
-    tft.begin(HX8357D);
-    tft.setFont(&FreeSans9pt7b);
-    tft.setRotation(3);
+
+    tft.begin(HX8357D); // Initialize the screen
+    tft.setFont(&FreeSans9pt7b); // Set the font to be used
+    tft.setRotation(3); // rotate the screen into the right position
+
+    // TODO: Check to see if variable is in use
     interface.activePage = mainMenu;
     drawMenu();
 
+    // TODO: Remove these initialized variable before shipping
     parameterList[intMinAngle] = 20;
     parameterList[intMaxAngle] = 120;
     parameterList[intCycle] = 10;
@@ -280,17 +299,18 @@ void interfaceInit() {
 
 }
 
+// Handles what to do when the user decides to make the tester perform an action
 void handleActionInput() {
+    // First if checks if interfaceActions has an empty string and if so skip writing the Okay/Cancel menu.
     if (strcmp(interfaceActions[interface.workingParameterNumber].text,"") != 0) {
-        if (interface.sourceNumber == 10) {
-            //if((*interfaceActions.actionFunction[interface.workingParameterNumber])())
+        if (interface.sourceNumber == 10) { // Check if A has been pressed
+            // This last if runs the function and wait for a value of 1 to be returned to continue
             if ((boolean) (*actionFunctionList[interface.workingParameterNumber])())
                 drawMenu();
-        } else if (interface.sourceNumber == 11) {
+        } else if (interface.sourceNumber == 11) { // Go back to menu if B is pressed
             drawMenu();
         }
-    } else {
-        Serial.println("Cool");
+    } else { // Immediately run function because the corresponding entry in interfaceActions has no text
         if ((boolean) (*actionFunctionList[interface.workingParameterNumber])())
             drawMenu();
         else
@@ -298,49 +318,55 @@ void handleActionInput() {
     }
 }
 
+// Handle what to do during a yes/no entry
 void handleBoolInput() {
-    if (interface.sourceNumber == 10) {
+    if (interface.sourceNumber == 10) { // if A is pressed
         booleanList[interface.workingParameterNumber] = 1;
         drawMenu();
-    } else if (interface.sourceNumber == 11) {
+    } else if (interface.sourceNumber == 11) { // if B is pressed
         booleanList[interface.workingParameterNumber] = 0;
         drawMenu();
     }
 }
 
+// Handles the entry of parameters
 void handleParamInput() {
     Serial.print("Current Value:");
     Serial.println(parameterList[interface.workingParameterNumber]);
-    if (interface.sourceNumber >= 10) {
+    if (interface.sourceNumber >= 10) { // Did the user press A, B, C, D, #, or, *
         Serial.println();
-        if (interface.sourceNumber == 10) {
+        if (interface.sourceNumber == 10) { // If it was A set the proper variables to the desired value
             parameterList[interface.workingParameterNumber] = interface.tempValue;
             interface.tempValue = 0;
+
+            // To parameters we want to have the arm move if the user puts in an angle
             if (interface.workingParameterNumber == intMaxAngle || interface.workingParameterNumber == intMinAngle){
                 if (booleanList[boolMove])
                     processMove(parameterList[interface.workingParameterNumber]);
             }
 
             drawMenu();
-        } else if (interface.sourceNumber == 11) {
+        } else if (interface.sourceNumber == 11) { // If B was pressed do nothing and go back the the menu
             interface.tempValue = 0;
             drawMenu();
         }
         return;
-    }
-    if (interface.sourceNumber > -1) {
+    } //TODO: Check if changing if to else if breaks anything
+    else if (interface.sourceNumber > -1) { // Did the user press any numbers
         tft.print(interface.sourceNumber);
         interface.tempValue = interface.tempValue * 10 + interface.sourceNumber;
         Serial.print(interface.tempValue);
     }
 }
 
-
+// Handles inputs on the menu screens
 static void handleMenuInput(const struct interfaceParam_s *inter) {
     interface.workingParameterNumber = inter->number;
     interface.activeMenu = inter->type;
+    // Checks
     switch (inter->type) {
         case ptMenu:
+            // TODO: Check to see if variable is in use.
             interface.activePage = (interfacePage_e) inter->number;
             drawMenu();
             return;
