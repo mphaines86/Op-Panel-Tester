@@ -293,7 +293,7 @@ void interfaceInit() {
 
     // TODO: Remove these initialized variable before shipping
     parameterList[intMinAngle] = 20;
-    parameterList[intMaxAngle] = 120;
+    parameterList[intMaxAngle] = 90;
     parameterList[intCycle] = 10;
     booleanList[boolMove] = 1;
 

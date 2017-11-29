@@ -10,7 +10,14 @@
 double armPosition = 0;
 
 void processBegin(){
-
+    message_output_t outputMessage {};
+    writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "0");
+    writerSendMessage(&outputMessage);
+    delay(2000);
+    writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x90", (char *) "115200");
+    writerSendMessage(&outputMessage);
+    Serial3.flush();
+    Serial3.begin(115200);
 }
 
 uint8_t processCalibrate() {
@@ -166,7 +173,7 @@ uint8_t processLoad() {
 }
 
 uint8_t processMove(uint16_t degree){
-    auto steps = static_cast<int16_t>((degree - armPosition) / 0.406779661017);
+    auto steps = static_cast<int16_t>((degree - armPosition) / (0.406779661017 * 2));
 
     armPosition = degree;
 
