@@ -148,7 +148,7 @@ static struct {
     enum interfaceParamType_e activeMenu; // Used to determine which page of the menu screen we are in
     int8_t workingParameterNumber; // Determines which parameter has been selected from parameterList or booleanList in storage.h
     int8_t sourceNumber; // Used to determine the current active secondary index of interfaceParameters
-    uint8_t tempValue;
+    uint16_t tempValue;
 
 } interface;
 
@@ -292,7 +292,7 @@ void interfaceInit() {
     drawMenu();
 
     // TODO: Remove these initialized variable before shipping
-    parameterList[intMinAngle] = 20;
+    parameterList[intMinAngle] = 15;
     parameterList[intMaxAngle] = 90;
     parameterList[intCycle] = 10;
     booleanList[boolMove] = 1;

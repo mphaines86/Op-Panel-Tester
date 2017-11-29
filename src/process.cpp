@@ -4,12 +4,14 @@
 #include "MessageReader.h"
 #include "storage.h"
 #include "interface.h"
+#include "inttypes.h"
 
 
 #define DEBOUNCE_MAX 4
 
 volatile uint32_t messageData = 0;
 volatile uint32_t messageCount = 0;
+uint8_t moveCommand = 0;
 double forceConstant = 1;
 
 struct message_t processMessage;
@@ -26,11 +28,14 @@ void processBegin(){
     message_output_t outputMessage {};
     writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "0");
     writerSendMessage(&outputMessage);
-    delay(2000);
+    delay(1000);
     writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x90", (char *) "115200");
     writerSendMessage(&outputMessage);
     Serial3.flush();
     Serial3.begin(115200);
+    delay(1000);
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x24", (char *) "21");
+    //writerSendMessage(&outputMessage);
 }
 
 uint8_t processCalibrate() {
@@ -78,36 +83,62 @@ uint8_t processRun() {
     tft.println("Current Cycle Number:");
     tft.print(currentIteration);
 
-    message_output_t outputMessage;
+    message_output_t outputMessage{};
 
+
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x24", (char *) "21");
+    //writerSendMessage(&outputMessage);
+    Delay_us(100);
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0xc8", (char *) "0");
+    //writerSendMessage(&outputMessage);
+    Delay_us(100);
+
+    currentIteration = 230;
     TIMSK3 |= (1 << OCIE3A);
-    while (currentIteration < parameterList[intCycle]) {
+    while (currentIteration < (uint32_t) parameterList[intCycle]) {
+        Serial.println(parameterList[intCycle]);
+        Serial.println(currentIteration);
         processMove(parameterList[intMaxAngle]);
+        moveCommand = 1;
         uint8_t counter = 0;
-        while(PINA & (1 << PA3)){
-            if (!counter){
+        while (moveCommand | (PINA & (1 << PA3))) {
+            delay(100);
+            if (PINA & (1 << PA3)){
+                moveCommand = 0;
+            }
+
+            /*if (!counter){
                 if(currentIteration % parameterList[intStore] == 0){
                     writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "0x0c", (char * ) nullptr);
                     writerSendMessage(&outputMessage);
                     storageWriteToFile("RUNDATA.TXT", messageData);
                 }
                 counter = 1;
-            }
+            }*/
+
         }
-        Delay_ms(parameterList[intDelay]);
-        processMove(parameterList[intMinAngle] * 100);
+        //Serial.println("delay");
+        //delay(1000);
+        processMove(parameterList[intMinAngle]);
+        moveCommand = 1;
         counter = 0;
-        while(PINA & (1 << PA3)){
-            if (!counter){
+        while (moveCommand | (PINA & (1 << PA3))){
+            delay(100);
+            //Serial.print("2: ");
+            //Serial.println(PINA & (1 << PA3));
+            if(PINA & (1 << PA3)) {
+                moveCommand = 0;
+            }
+            /*if (!counter){
                 char *temp = nullptr;
                 sprintf(temp, "%6d\n%8d", currentIteration, (uint32_t)
                         ((millis() - runStart) / 1000));
                 storageWriteLine("SYSTEM.VAR", 2, temp);
                 counter = 1;
-            }
+            }*/
         }
-
-        Delay_ms(parameterList[intDelay] * 100);
+        //Serial.println("delay");
+        //delay(1000);
         tft.setCursor(0, 134);
         tft.setTextColor(HX8357_BLACK);
         tft.print(currentIteration);
@@ -207,8 +238,8 @@ uint8_t processLoad() {
     }
 }
 
-uint8_t processMove(uint16_t degree){
-    auto steps = static_cast<int16_t>(degree * 1071);
+uint8_t processMove(uint8_t degree){
+    uint32_t steps = (uint32_t) degree * 961;
 
     /*if (steps < 0){
         PORTE &= ~(1 << PE3);
@@ -224,14 +255,14 @@ uint8_t processMove(uint16_t degree){
 
     char temp[6];
 
-    sprintf(temp, "%d", steps);
-    message_output_t outputMessage;
+    sprintf(temp, "%"PRIu32"", steps);
+    message_output_t outputMessage{};
     writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0xca", (char *) temp);
     writerSendMessage(&outputMessage);
-    Delay_us(100);
+    delayMicroseconds(1000);
     writerPrepMessage(&outputMessage, '\0', '\0', 't', (char *) "1", (char *) nullptr);
     writerSendMessage(&outputMessage);
-    Delay_us(100);
+    delayMicroseconds(1000);
 
     /* uint16_t count = 0;
     steps++;
