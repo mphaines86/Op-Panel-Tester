@@ -12,12 +12,10 @@ enum message_state_t {
 };
 
 struct message_data_t {
-	struct {
-		uint8_t nodeID;
-		uint8_t axisLetter;
-		uint8_t commandCode;
-	} header;
-	uint8_t commandParam[MAX_MESSAGE_LENGTH-3];
+    uint8_t commandCode[MAX_MESSAGE_LENGTH];
+	uint8_t commandCodeLength;
+	uint8_t commandParam[MAX_MESSAGE_LENGTH];
+	uint8_t commandParamLength;
 	uint8_t unorganizedMessage[MAX_MESSAGE_LENGTH];
 	uint8_t length;
 };
