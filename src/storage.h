@@ -5,6 +5,7 @@
 #include "utilities.h"
 
 extern uint8_t storage_SD_loaded;
+extern String currentWorkingFile;
 
 typedef enum {
   intSpeed=0, intMaxAngle, intMinAngle, intCycle, intMaxForce, intMinForce,
@@ -25,6 +26,7 @@ extern uint8_t booleanList[boolCount];
 
 uint8_t storageSaveParameters();
 uint8_t storageBeginSD();
+String storageReadLine(const String &fileName, uint16_t lineNumber);
 uint8_t storageLoadSD(const String &fileName);
 uint8_t storageWriteLine(const String &fileName, uint16_t lineNumber, char * data);
 void storageNewFile();

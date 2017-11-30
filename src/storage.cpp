@@ -24,6 +24,20 @@ static String readLine(File dataFile, uint16_t lineNumber){
     return line;
 }
 
+String storageReadLine(const String &fileName, uint16_t lineNumber){
+
+    File dataFile;
+    dataFile = SD.open(fileName);
+
+    uint16_t currentLine = 0;
+    String line = "";
+    do {
+        line = dataFile.readStringUntil('\n');
+        currentLine++;
+    } while(currentLine != lineNumber);
+    return line;
+}
+
 uint8_t storageWriteLine(const String &fileName, uint16_t lineNumber, char * data){
     uint16_t currentLine = 0;
     String line = "";
@@ -106,8 +120,8 @@ uint8_t storageSaveParameters() {
     else {
         uint8_t current_file_number = 0;
         String lineData;
-        if (SD.exists("SYSTEM.VAR")) {
-            File dataFile = SD.open("SYSTEM.VAR", O_WRITE | O_CREAT | O_TRUNC);
+        if (SD.exists("SYSTEM_1.VAR")) {
+            File dataFile = SD.open("SYSTEM_1.VAR", O_WRITE | O_CREAT | O_TRUNC);
             lineData = readLine(dataFile, 0);
             current_file_number = (uint8_t) lineData.toInt();
             writeIntLine(dataFile, 0, ++current_file_number);

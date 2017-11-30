@@ -67,8 +67,37 @@ uint8_t processCalibrate() {
 
 uint8_t processRun() {
 
+    //message_output_t outputMessage{};
+
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x24", (char *) "21");
+    //writerSendMessage(&outputMessage);
+    //Delay_us(100);
+    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0xc8", (char *) "0");
+    //writerSendMessage(&outputMessage);
+    //Delay_us(100);
+
     uint32_t currentIteration = 0;
     uint32_t runStart = (uint32_t) millis();
+
+    processMove(parameterList[intMinAngle]);
+    tft.fillScreen(0x2924);
+    for (int i = 0; i <= 5; i++)
+        tft.fillRect(0, i * 6, tft.width(), 8, colorBar[i]);
+    tft.setCursor(0, 24);
+    tft.setTextColor(HX8357_WHITE);
+    tft.setTextSize(2);
+    tft.println("Position setup");
+    tft.setTextSize(1);
+    tft.println();
+    tft.setTextSize(2);
+    tft.println("Please position op-panel\nin gripper and press\nany key to continue");
+
+    while(true){
+        int8_t keyValue = checkKeypad();
+        if (keyValue >= 0){
+            break;
+        }
+    }
 
     tft.fillScreen(0x2924);
     for (int i = 0; i <= 5; i++)
@@ -83,17 +112,10 @@ uint8_t processRun() {
     tft.println("Current Cycle Number:");
     tft.print(currentIteration);
 
-    message_output_t outputMessage{};
+    char currentFile[12];
+    currentWorkingFile.toCharArray(currentFile, 12);
+    storageWriteLine("SYSTEM_1.VAR", 1, currentFile);
 
-
-    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x24", (char *) "21");
-    //writerSendMessage(&outputMessage);
-    Delay_us(100);
-    //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0xc8", (char *) "0");
-    //writerSendMessage(&outputMessage);
-    Delay_us(100);
-
-    currentIteration = 230;
     TIMSK3 |= (1 << OCIE3A);
     while (currentIteration < (uint32_t) parameterList[intCycle]) {
         Serial.println(parameterList[intCycle]);
@@ -111,7 +133,7 @@ uint8_t processRun() {
                 if(currentIteration % parameterList[intStore] == 0){
                     writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "0x0c", (char * ) nullptr);
                     writerSendMessage(&outputMessage);
-                    storageWriteToFile("RUNDATA.TXT", messageData);
+                    storageWriteToFile("RUNDATA1.TXT", messageData);
                 }
                 counter = 1;
             }*/
@@ -133,7 +155,7 @@ uint8_t processRun() {
                 char *temp = nullptr;
                 sprintf(temp, "%6d\n%8d", currentIteration, (uint32_t)
                         ((millis() - runStart) / 1000));
-                storageWriteLine("SYSTEM.VAR", 2, temp);
+                storageWriteLine("SYSTEM_1.VAR", 2, temp);
                 counter = 1;
             }*/
         }
@@ -154,6 +176,24 @@ uint8_t processRun() {
 }
 
 uint8_t processHelp() {
+
+    tft.fillScreen(0x2924);
+    for (int i = 0; i <= 5; i++)
+        tft.fillRect(0, i * 6, tft.width(), 8, colorBar[i]);
+    tft.setCursor(0, 24);
+    tft.setTextColor(HX8357_WHITE);
+    tft.setTextSize(2);
+    tft.println("Position setup");
+    tft.setTextSize(1);
+    tft.println();
+    tft.setTextSize(2);
+    tft.print("Last File Ran:");
+    tft.print(storageReadLine("SYSTEM_1.VAR", 1));
+    tft.print("Last Cycle:");
+    tft.print(storageReadLine("SYSTEM_1.VAR", 2));
+    tft.print("Last Run Time:");
+    tft.print(storageReadLine("SYSTEM_1.VAR", 3));
+
     return 1;
 }
 

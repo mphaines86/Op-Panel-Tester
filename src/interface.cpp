@@ -75,14 +75,14 @@ functionPtr_t actionFunctionList[8] = {&processCalibrate, &processRun,
                                        &processAttributes, &processHelp,
                                        &processSave, &processLoad, &processNew, &processHome};
 
-const struct interfaceParam_s interfaceParameters[5][7] = {
+const struct interfaceParam_s interfaceParameters[4][7] = {
         {
                 {ptNone, -1, "Main Menu"},
                 {ptMenu,   1,           "A.) Set Testing Parameters"},
                 {ptMenu,   2,           "B.) Force Setup & Calibration"},
                 {ptAction, actTest,     "C.) Begin Test"},
                 {ptMenu,  3,        "D.) Storage"},
-                {ptMenu,   4,      "#.) Settings"},
+                {ptNone, -1, ""},
                 {ptNone, -1, ""},
         },
         {
@@ -95,13 +95,13 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptMenu, 0,  "*.) Main Menu"},
         },
         {
-                {ptNone, -1, "Force Setup & Calibration"},
-                {ptParam,  intMaxForce, "A.) Max Force (0 - 30)"},
-                {ptParam,  intMinForce, "B.) Min Force (0 - 30)"},
-                {ptBool,   boolFail,    "C.) Force Out of Bounds Error"},
-                {ptParam, intError, "D.)Out of Bounds Error(0-100)"},
-                {ptAction, actCal, "#.) Begin Calibration"},
-                {ptMenu, 0,  "*.) Main Menu"},
+                {ptNone, -1, "Calibration and Settings"},
+                {ptAction, actHome,     "A.) Home Arm"},
+                {ptAction,  actCal, "B.) Calibration Force"},
+                {ptAction,   actHelp,    "C.) Log"},
+                {ptBool, boolMove, "D.) Move when setting angle?"},
+                {ptMenu, 0, "#.) Main Menu"},
+                {ptNone, -1,  ""},
         },
         {
                 {ptNone, -1, "Storage"},
@@ -111,21 +111,12 @@ const struct interfaceParam_s interfaceParameters[5][7] = {
                 {ptParam,  intStore,    "D.) Store test data every\n(0-) cycles"},
                 {ptMenu,   0,           "#.) Main Menu"},
                 {ptNone, -1, ""},
-        },
-        {
-                {ptNone, -1, "Settings"},
-                {ptAction, actAtt,      "A.) Attributes"},
-                {ptAction, actHelp,     "B.) Log"},
-                {ptAction, actHome,     "C.) Home Arm"},
-                {ptBool,  boolMove,     "D.) Move when setting Angle?" },
-                {ptMenu,   0,           "#.) Main Menu"},
-                {ptNone, -1, ""},
         }
 };
 
 const struct interfaceAct_s interfaceActions[8] = {
         {actCal,  "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration." },
-        {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing."                        },
+        {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.\nArm will move to initial position"},
         {actAtt,  ""                                                                                                },
         {actHelp, ""                                                                                                },
         {actSave, "Save Testing Parameters?"                                                                        },
