@@ -11,7 +11,7 @@ uint8_t read_message(struct message_t *message) {
 		case WAITING_FOR_MESSAGE: {
 			if (Serial3.available() > 0) {
 				message->data.unorganizedMessage[message->data.length] = (uint8_t)Serial3.read();
-				Serial.println(Serial3.read());
+				Serial.println(message->data.unorganizedMessage[message->data.length]);
 				message->data.length++;
 				if (message->data.unorganizedMessage[message->data.length - 1] == '\r'){
 

@@ -12,7 +12,7 @@ typedef enum {
   intError, intStore, intDelay, intCount,
 } intParameter_t;
 
-extern uint16_t parameterList[intCount];
+extern uint32_t parameterList[intCount];
 
 typedef enum {
 actCal=0, actTest, actAtt, actHelp, actSave, actLoad, actNew, actHome, actCount

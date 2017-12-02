@@ -5,7 +5,7 @@ uint8_t storage_SD_loaded = 0;
 String currentWorkingFile = "";
 
 uint8_t storageBeginSD(){
-    if (!SD.begin(8)) {
+    if (!SD.begin(6)) {
         Serial.println("No SD card found.");
         return 0;
     }
@@ -81,7 +81,7 @@ uint8_t storageWriteToFile(const String &fileName, uint32_t data){
 
 void storageNewFile(){
     currentWorkingFile = "";
-    for (uint16_t &i : parameterList) {
+    for (uint32_t &i : parameterList) {
         i =0;
     }
     for (uint8_t &i : booleanList) {
@@ -93,7 +93,7 @@ uint8_t storageLoadSD(const String &fileName){
     Serial.println(SD.exists(fileName));
     if(SD.exists(fileName)){
         File dataFile = SD.open(fileName);
-        for (uint16_t &i : parameterList){
+        for (uint32_t &i : parameterList){
             //Serial.println(dataFile.readStringUntil('\n').toInt());
             i = (uint16_t) dataFile.readStringUntil('\n').toInt();
         }

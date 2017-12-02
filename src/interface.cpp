@@ -12,9 +12,9 @@
 #include "../lib/Adafruit_GFX/Fonts/FreeSans9pt7b.h"
 
 #define DEBOUNCE_MAX 4
-#define TFT_CS 48
-#define TFT_DC 46
-#define TFT_RST 2 // RST can be set to -1 if you tie it to Arduino's reset
+#define TFT_CS 2
+#define TFT_DC 3
+#define TFT_RST 4 // RST can be set to -1 if you tie it to Arduino's reset
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
@@ -22,7 +22,7 @@ Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 const uint16_t colorBar[] = {0x5ACA, 0x52A9, 0x4A48, 0x4228, 0x4207, 0x39E7};
 
 uint8_t booleanList[boolCount];
-uint16_t parameterList[intCount];
+uint32_t parameterList[intCount];
 
 // TODO: Delete if never used
 enum interfacePage_e {
@@ -116,7 +116,7 @@ const struct interfaceParam_s interfaceParameters[4][7] = {
 
 const struct interfaceAct_s interfaceActions[8] = {
         {actCal,  "Calibration of the force\nsensors will now begin. Make sure the area is clear for\ncalibration." },
-        {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing.\nArm will move to initial position"},
+        {actTest, "Testing will now Begin.\nPlease make sure the area is clear for testing. Arm will\nmove to initial position"},
         {actAtt,  ""                                                                                                },
         {actHelp, ""                                                                                                },
         {actSave, "Save Testing Parameters?"                                                                        },
@@ -139,7 +139,7 @@ static struct {
     enum interfaceParamType_e activeMenu; // Used to determine which page of the menu screen we are in
     int8_t workingParameterNumber; // Determines which parameter has been selected from parameterList or booleanList in storage.h
     int8_t sourceNumber; // Used to determine the current active secondary index of interfaceParameters
-    uint16_t tempValue;
+    uint32_t tempValue;
 
 } interface;
 
@@ -270,13 +270,13 @@ void interfaceInit() {
     }
 
     // Initialize all parameters to 0
-    for (uint16_t &i : parameterList) {
+    for (uint32_t &i : parameterList) {
         i = 0;
     }
 
     tft.begin(HX8357D); // Initialize the screen
     tft.setFont(&FreeSans9pt7b); // Set the font to be used
-    tft.setRotation(3); // rotate the screen into the right position
+    tft.setRotation(1); // rotate the screen into the right position
 
     // TODO: Check to see if variable is in use
     interface.activePage = mainMenu;
@@ -285,8 +285,10 @@ void interfaceInit() {
     // TODO: Remove these initialized variable before shipping
     parameterList[intMinAngle] = 15;
     parameterList[intMaxAngle] = 90;
-    parameterList[intCycle] = 10;
+    parameterList[intCycle] = 50;
     booleanList[boolMove] = 1;
+    parameterList[intStore] = 5;
+    parameterList[intSpeed] = 100;
 
 }
 
@@ -322,10 +324,10 @@ void handleBoolInput() {
 
 // Handles the entry of parameters
 void handleParamInput() {
-    Serial.print("Current Value:");
-    Serial.println(parameterList[interface.workingParameterNumber]);
+    //Serial.print("Current Value:");
+    //Serial.println(parameterList[interface.workingParameterNumber]);
     if (interface.sourceNumber >= 10) { // Did the user press A, B, C, D, #, or, *
-        Serial.println();
+        //Serial.println();
         if (interface.sourceNumber == 10) { // If it was A set the proper variables to the desired value
             parameterList[interface.workingParameterNumber] = interface.tempValue;
             interface.tempValue = 0;
@@ -346,7 +348,6 @@ void handleParamInput() {
     else if (interface.sourceNumber > -1) { // Did the user press any numbers
         tft.print(interface.sourceNumber);
         interface.tempValue = interface.tempValue * 10 + interface.sourceNumber;
-        Serial.print(interface.tempValue);
     }
 }
 

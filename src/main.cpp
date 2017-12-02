@@ -24,6 +24,9 @@ int main() {
 struct message_t message;
 
 void setup(void) {
+
+    delay(2000);
+
     Serial3.begin(9600);
     Serial.begin(115200);
 
