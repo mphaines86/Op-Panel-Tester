@@ -53,7 +53,7 @@ void setup(void) {
     TCCR3B = 0;// same for TCCR1B
     TCNT3 = 0;//initialize counter value to 0
     // set compare match register for 1hz increments
-    OCR3A = (uint16_t) ((F_CPU / 1024) * .5 - 1);// = (16*10^6) / (1*1024) - 1 (must be <65536)
+    OCR3A = (uint16_t) ((F_CPU / 1024) * .1 - 1);// = (16*10^6) / (1*1024) - 1 (must be <65536)
     // turn on CTC mode
     TCCR3B |= (1 << WGM32);
     // Set CS10 and CS12 bits for 1024 prescaler

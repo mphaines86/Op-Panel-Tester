@@ -81,7 +81,7 @@ uint8_t processRun() {
     //writerSendMessage(&outputMessage);
     delayMicroseconds(5000);
     char temp[8];
-    sprintf(temp, "%"PRIu32"", parameterList[intSpeed] * 1000);
+    sprintf(temp, "%"PRIu32"", parameterList[intSpeed] * 10000);
     Serial.println(temp);
 
 
@@ -131,11 +131,13 @@ uint8_t processRun() {
     storageWriteLine("SYSTEM_1.VAR", 1, currentFile);
 
     while (currentIteration < (uint32_t) parameterList[intCycle]) {
+        //Serial.print("iter:");
+        //Serial.println(currentIteration);
         processMove(parameterList[intMaxAngle]);
         moveCommand = 1;
         uint8_t counter = 0;
         while (moveCommand | (PINA & (1 << PA3))) {
-            Serial.print(1);
+            //Serial.print(1);
             delay(100);
             if (PINA & (1 << PA3)){
                 moveCommand = 0;
@@ -143,7 +145,7 @@ uint8_t processRun() {
 
             if (!counter){
                 if(currentIteration % parameterList[intStore] == 0){
-                    writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "0x0c", (char * ) nullptr);
+                    writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char * ) nullptr);
                     writerSendMessage(&outputMessage);
                     //storageWriteToFile("RUNDATA1.TXT", messageData);
                 }
@@ -153,8 +155,7 @@ uint8_t processRun() {
         }
         Serial.println(messageData);
         lastDelay = (uint32_t) millis();
-        while(millis() - lastDelay <= parameterList[intDelay] * 1000){
-            Serial.print("0");
+        while((millis() - lastDelay) <= (parameterList[intDelay] * 1000)){
         }
         processMove(parameterList[intMinAngle]);
         moveCommand = 1;
@@ -176,7 +177,7 @@ uint8_t processRun() {
         }
         //Serial.println("delay");
         lastDelay = (uint32_t) millis();
-        while((millis() - lastDelay) <= parameterList[intDelay] * 1000){
+        while((millis() - lastDelay) <= (parameterList[intDelay] * 1000)){
 
         }
         tft.setCursor(0, 134);
@@ -369,14 +370,26 @@ uint8_t processHome(){
 
 ISR(TIMER3_COMPA_vect) {
     if(read_message(&processMessage)){
-        Serial.println(processMessage.data.commandCode[0]);
-        Serial.println(processMessage.data.commandParam[0]);
+        //Serial.println(processMessage.data.commandCodeLength);
+        /*for (int j = 0; j < processMessage.data.commandCodeLength; ++j) {
+            Serial.print((char) processMessage.data.commandCode[j]);
+            Serial.print(' ');
+        }
+        Serial.println();
+        //Serial.println(processMessage.data.commandParamLength);
+        for (int j = 0; j < processMessage.data.commandParamLength; ++j) {
+            Serial.print((char) processMessage.data.commandParam[j]);
+            Serial.print(' ');
+        }
+        Serial.println();*/
         if (processMessage.data.commandCode[0] == 'v'){
             Serial.println("YEAH!!!");
             int i = 0;
             while (i < processMessage.data.commandParamLength){
+                Serial.print(processMessage.data.commandParam[i]);
                 messageData = messageData * 10 + (processMessage.data.commandParam[i++] - '0');
             }
+            Serial.println();
         }
         messageCount++;
         message_processed(&processMessage);

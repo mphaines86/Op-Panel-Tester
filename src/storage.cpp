@@ -5,7 +5,7 @@ uint8_t storage_SD_loaded = 0;
 String currentWorkingFile = "";
 
 uint8_t storageBeginSD(){
-    if (!SD.begin(6)) {
+    if (!SD.begin(5)) {
         Serial.println("No SD card found.");
         return 0;
     }
@@ -20,6 +20,7 @@ static String readLine(File dataFile, uint16_t lineNumber){
     do {
         line = dataFile.readStringUntil('\n');
         currentLine++;
+        Serial.println(currentLine);
     } while(currentLine != lineNumber);
     return line;
 }
@@ -111,7 +112,6 @@ uint8_t storageSaveParameters() {
         if (storageBeginSD() == 0u)
             return 0;
     }
-
     char temp[12];
 
     if (currentWorkingFile != "") {
@@ -123,10 +123,12 @@ uint8_t storageSaveParameters() {
         if (SD.exists("SYSTEM_1.VAR")) {
             File dataFile = SD.open("SYSTEM_1.VAR", O_WRITE | O_CREAT | O_TRUNC);
             lineData = readLine(dataFile, 0);
+            Serial.println("Got line");
             current_file_number = (uint8_t) lineData.toInt();
-            writeIntLine(dataFile, 0, ++current_file_number);
+            writeIntLine(dataFile, 0, current_file_number+1);
             dataFile.close();
         }
+        Serial.println("testing");
         sprintf(temp, "%08d.DAT", current_file_number+1);
     }
     Serial.println(temp);

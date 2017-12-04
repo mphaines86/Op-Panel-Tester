@@ -190,13 +190,13 @@ static void drawParamMenu() {
     tft.fillRect(60, 86, 340, 130, 0xBE15);
     tft.setTextColor(0x0000);
     tft.setCursor(62, 116);
-    tft.print("Current Value: ");
+    tft.print("Set Value: ");
     tft.println(parameterList[interface.workingParameterNumber]);
     tft.setCursor(62, 144);
     tft.println("New Value: ");
     tft.setCursor(62, 200);
     tft.println("A.) Okay  B.) Cancel");
-    tft.setCursor(304, 144);
+    tft.setCursor(253, 144);
 
 
 
