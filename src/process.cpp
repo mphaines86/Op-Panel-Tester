@@ -8,9 +8,14 @@
 
 
 #define DEBOUNCE_MAX 4
+#define NUMBER_OF_SAMPLES 6
 
+uint32_t ampData[NUMBER_OF_SAMPLES];
 volatile uint32_t messageData = 0;
 volatile uint32_t messageCount = 0;
+volatile uint8_t interuptCounter = 0;
+volatile uint8_t interuptCounter2 = 0;
+uint8_t delayActive = 0;
 uint8_t moveCommand = 0;
 double forceConstant = 1;
 
@@ -24,6 +29,10 @@ static double getForce(){
 }
 
 void processBegin(){
+    for (int i = 0; i < NUMBER_OF_SAMPLES; ++i) {
+        ampData[i] = 0;
+    }
+
     setupReader(&processMessage);
     message_output_t outputMessage {};
     //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0x02", (char *) "0");
@@ -91,7 +100,6 @@ uint8_t processRun() {
     writerSendMessage(&outputMessage);
 
     uint32_t currentIteration = 0;
-    uint32_t runStart = (uint32_t) millis();
     uint32_t lastDelay = 0;
 
     tft.fillScreen(0x2924);
@@ -124,15 +132,15 @@ uint8_t processRun() {
     tft.println();
     tft.setTextSize(2);
     tft.println("Current Cycle Number:");
-    tft.print(currentIteration);
+    tft.println(currentIteration);
+    tft.println("Average Amperage (mA):");
+    tft.print(0);
 
-    char currentFile[12];
-    currentWorkingFile.toCharArray(currentFile, 12);
-    storageWriteLine("SYSTEM_1.VAR", 1, currentFile);
+    auto runStart = (uint32_t) millis();
 
-    while (currentIteration < (uint32_t) parameterList[intCycle]) {
-        //Serial.print("iter:");
-        //Serial.println(currentIteration);
+    while (currentIteration < parameterList[intCycle]) {
+        Serial.print("iter:");
+        Serial.println(currentIteration);
         processMove(parameterList[intMaxAngle]);
         moveCommand = 1;
         uint8_t counter = 0;
@@ -144,19 +152,70 @@ uint8_t processRun() {
             }
 
             if (!counter){
-                if(currentIteration % parameterList[intStore] == 0){
-                    writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char * ) nullptr);
-                    writerSendMessage(&outputMessage);
-                    //storageWriteToFile("RUNDATA1.TXT", messageData);
-                }
-                counter = 1;
+                char charHold[20];
+                sprintf(charHold, "%09"PRIu32"\n%09"PRIu32"\n", currentIteration, (uint32_t) (((uint32_t)millis() - runStart)/1000));
+                storageWriteLine("SYSTEM_1.VAR", 0, charHold);
+            }
+            if (counter < (NUMBER_OF_SAMPLES/2)){
+                writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char * ) nullptr);
+                writerSendMessage(&outputMessage);
+                counter++;
+            }
         }
 
+        delayActive = 1;
+
+        //uint32_t tmp[NUMBER_OF_SAMPLES]; //Sort distances values and take the median; there's generally a lot of noise and this is the best quick/simple way we had to filter it
+        //memcpy(&tmp[0], &ampData[0] , NUMBER_OF_SAMPLES*sizeof(uint32_t));
+        //qsort(tmp, NUMBER_OF_SAMPLES, sizeof(uint32_t), uint32Compare);
+
+        tft.setCursor(0, 222);
+        tft.setTextColor(HX8357_BLACK);
+        tft.print(messageData);
+        tft.setCursor(0, 222);
+        tft.setTextColor(HX8357_WHITE);
+        //messageData = tmp[NUMBER_OF_SAMPLES/2];
+        messageData = 0;
+        for (unsigned int i : ampData) {
+            messageData += i;
         }
-        Serial.println(messageData);
+        messageData/=NUMBER_OF_SAMPLES;
+        messageData*=10;
+        if (parameterList[intMaxForce] && messageData > parameterList[intMaxForce]){
+            TIMSK3 &= (0 << OCIE3A);
+            auto lastTime = (uint32_t) millis();
+            while(true){
+                tft.setCursor(0, 222);
+                tft.setTextColor(HX8357_RED);
+                tft.print(messageData);
+                while(((uint32_t) millis() - lastTime) < 2000){
+                    int8_t keyValue = checkKeypad();
+                    if (keyValue >= 0){
+                        return 1;
+                    }
+                }
+                lastTime = (uint32_t) millis();
+                tft.setCursor(0, 222);
+                tft.setTextColor(HX8357_BLACK);
+                tft.print(messageData);
+                while(((uint32_t) millis() - lastTime) < 2000) {
+                    int8_t keyValue = checkKeypad();
+                    if (keyValue >= 0) {
+                        return 1;
+                    }
+                }
+                lastTime = (uint32_t) millis();
+
+            }
+        }
+
+
+        tft.print(messageData);
+
         lastDelay = (uint32_t) millis();
         while((millis() - lastDelay) <= (parameterList[intDelay] * 1000)){
         }
+        delayActive = 0;
         processMove(parameterList[intMinAngle]);
         moveCommand = 1;
         counter = 0;
@@ -167,15 +226,14 @@ uint8_t processRun() {
             if(PINA & (1 << PA3)) {
                 moveCommand = 0;
             }
-            /*if (!counter){
-                char *temp = nullptr;
-                sprintf(temp, "%6d\n%8d", currentIteration, (uint32_t)
-                        ((millis() - runStart) / 1000));
-                storageWriteLine("SYSTEM_1.VAR", 2, temp);
-                counter = 1;
-            }*/
+            if (counter < (NUMBER_OF_SAMPLES/2)){
+                writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char * ) nullptr);
+                writerSendMessage(&outputMessage);
+                counter++;
+            }
         }
         //Serial.println("delay");
+        delayActive = 1;
         lastDelay = (uint32_t) millis();
         while((millis() - lastDelay) <= (parameterList[intDelay] * 1000)){
 
@@ -187,6 +245,7 @@ uint8_t processRun() {
         tft.setTextColor(HX8357_WHITE);
         currentIteration++;
         tft.print(currentIteration);
+        delayActive = 0;
     }
 
     TIMSK3 &= (0 << OCIE3A);
@@ -206,12 +265,17 @@ uint8_t processHelp() {
     tft.setTextSize(1);
     tft.println();
     tft.setTextSize(2);
-    tft.print("Last File Ran:");
-    tft.print(storageReadLine("SYSTEM_1.VAR", 1));
     tft.print("Last Cycle:");
-    tft.print(storageReadLine("SYSTEM_1.VAR", 2));
+    tft.println(storageReadLine("SYSTEM_1.VAR", 1).toInt() + 1);
     tft.print("Last Run Time:");
-    tft.print(storageReadLine("SYSTEM_1.VAR", 3));
+    tft.println(storageReadLine("SYSTEM_1.VAR", 2).toInt());
+
+    while(true){
+        int8_t keyValue = checkKeypad();
+        if (keyValue >= 0){
+            break;
+        }
+    }
 
     return 1;
 }
@@ -369,29 +433,35 @@ uint8_t processHome(){
 
 
 ISR(TIMER3_COMPA_vect) {
+    interuptCounter++;
+    /*if(!(interuptCounter%=8) && !delayActive) {
+        message_output_t outputMessage{};
+        writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char *) nullptr);
+        writerSendMessage(&outputMessage);
+    }*/
+
     if(read_message(&processMessage)){
-        //Serial.println(processMessage.data.commandCodeLength);
-        /*for (int j = 0; j < processMessage.data.commandCodeLength; ++j) {
-            Serial.print((char) processMessage.data.commandCode[j]);
-            Serial.print(' ');
-        }
-        Serial.println();
-        //Serial.println(processMessage.data.commandParamLength);
-        for (int j = 0; j < processMessage.data.commandParamLength; ++j) {
-            Serial.print((char) processMessage.data.commandParam[j]);
-            Serial.print(' ');
-        }
-        Serial.println();*/
         if (processMessage.data.commandCode[0] == 'v'){
-            Serial.println("YEAH!!!");
             int i = 0;
+            interuptCounter2++;
+            interuptCounter2%=NUMBER_OF_SAMPLES;
+            ampData[interuptCounter2] = 0;
             while (i < processMessage.data.commandParamLength){
-                Serial.print(processMessage.data.commandParam[i]);
-                messageData = messageData * 10 + (processMessage.data.commandParam[i++] - '0');
+                //Serial.print("b ");
+                //Serial.print(processMessage.data.commandParam[i]);
+                if(processMessage.data.commandParam[i] == 45) {
+                    i++;
+                    continue;
+                }
+                ampData[interuptCounter2] = ampData[interuptCounter2] * 10 + (processMessage.data.commandParam[i] - 48);
+                //Serial.print("A: ");
+                //Serial.println(ampData[interuptCounter2]);
+                //Serial.print("F: ");
+                //Serial.println(messageData);
+                i++;
             }
-            Serial.println();
         }
-        messageCount++;
+        //messageCount++;
         message_processed(&processMessage);
     }
 }

@@ -1,5 +1,6 @@
 #include "storage.h"
 #include "SD.h"
+#include "inttypes.h"
 
 uint8_t storage_SD_loaded = 0;
 String currentWorkingFile = "";
@@ -22,6 +23,7 @@ static String readLine(File dataFile, uint16_t lineNumber){
         currentLine++;
         Serial.println(currentLine);
     } while(currentLine != lineNumber);
+    Serial.println(line);
     return line;
 }
 
@@ -36,6 +38,7 @@ String storageReadLine(const String &fileName, uint16_t lineNumber){
         line = dataFile.readStringUntil('\n');
         currentLine++;
     } while(currentLine != lineNumber);
+    dataFile.close();
     return line;
 }
 
@@ -52,20 +55,22 @@ uint8_t storageWriteLine(const String &fileName, uint16_t lineNumber, char * dat
         currentLine++;
     }
     dataFile.write(data);
+    dataFile.close();
 
     return 1;
 
 }
 
 static void writeIntLine(File dataFile, uint16_t lineNumber, uint32_t data){
-    uint16_t currentLine = 0;
+    Serial.println(data);
+    uint16_t currentLine = 1;
     String line = "";
     while(currentLine != lineNumber) {
         line = dataFile.readStringUntil('\n');
         currentLine++;
     }
     char temp[6];
-    sprintf(temp,"%6d", data);
+    sprintf(temp,"%6d\n", data);
     dataFile.write(temp);
 }
 
@@ -120,22 +125,24 @@ uint8_t storageSaveParameters() {
     else {
         uint8_t current_file_number = 0;
         String lineData;
-        if (SD.exists("SYSTEM_1.VAR")) {
+        /*if (SD.exists("SYSTEM_1.VAR")) {
             File dataFile = SD.open("SYSTEM_1.VAR", O_WRITE | O_CREAT | O_TRUNC);
-            lineData = readLine(dataFile, 0);
+            lineData = readLine(dataFile, 1);
             Serial.println("Got line");
             current_file_number = (uint8_t) lineData.toInt();
-            writeIntLine(dataFile, 0, current_file_number+1);
+            writeIntLine(dataFile, 1, current_file_number+1h);
             dataFile.close();
-        }
+        }*/
         Serial.println("testing");
         sprintf(temp, "%08d.DAT", current_file_number+1);
     }
     Serial.println(temp);
     File dataFile = SD.open(temp, O_WRITE | O_CREAT | O_TRUNC);
+    Serial.println("yeah");
     for (uint16_t i : parameterList) {
         char currentParam[6];
         sprintf(currentParam, "%06d", i);
+        Serial.println("test");
         dataFile.write(currentParam);
         dataFile.write('\n');
     }
@@ -145,6 +152,8 @@ uint8_t storageSaveParameters() {
         dataFile.write(currentParam);
         dataFile.write('\n');
     }
+
+    currentWorkingFile = String(temp);
     dataFile.close();
     Serial.println(SD.exists(temp));
 

@@ -1,19 +1,13 @@
 // LCD MODULES void cmd2LCD(char cmd)
 #include <stdlib.h>
+#include <stdint.h>
 #include "utilities.h"
 
-char Swap_Bits(char data)
+uint32_t freeRam ()
 {
-	char result= 0;
-	char finalresult=0;
-
-	for(char i = 0; i <= 7; ++i)
-	{
-		if (data & 1 << i) result+= (256 >> (i+1));
-	}
-	finalresult = 0x0F & (result >>4);
-	finalresult += (0xF0 & (result << 4));
-	return finalresult;
+	extern int __heap_start, *__brkval;
+	int v;
+	return (uint32_t) &v - (__brkval == 0 ? (uint32_t) &__heap_start : (uint32_t) __brkval);
 }
 
 void Delay(void){

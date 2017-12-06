@@ -12,7 +12,7 @@ void initArray(Array *a, size_t initialSize);
 void insertArray(Array *a, char element);
 void freeArray(Array *a);
 
-char Swap_Bits(char data);
+uint32_t freeRam();
 void Delay_ms(int delayms);
 void Delay_us(int delayus);
 void Delay(void);

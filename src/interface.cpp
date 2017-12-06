@@ -75,19 +75,19 @@ functionPtr_t actionFunctionList[8] = {&processCalibrate, &processRun,
                                        &processAttributes, &processHelp,
                                        &processSave, &processLoad, &processNew, &processHome};
 
-const struct interfaceParam_s interfaceParameters[4][7] = {
+const struct interfaceParam_s interfaceParameters[3][7] = {
         {
                 {ptNone, -1, "Main Menu"},
-                {ptMenu,   1,           "A.) Set Testing Parameters"},
-                {ptMenu,   2,           "B.) Force Setup & Calibration"},
+                {ptMenu,   2,           "A.) Homing and Log"},
+                {ptMenu,   1,           "B.) Set Testing Parameters"},
                 {ptAction, actTest,     "C.) Begin Test"},
-                {ptMenu,  3,        "D.) Storage"},
+                {ptNone,  -1,        ""},
                 {ptNone, -1, ""},
                 {ptNone, -1, ""},
         },
         {
                 {ptNone, -1, "Set Testing Parameters"},
-                {ptParam,  intSpeed,    "A.) Set Speed (0 - 255)"},
+                {ptParam,  intSpeed,    "A.) Set Speed (0 - 100)"},
                 {ptParam,  intMaxAngle, "B.) Max Angle (0 - 180)"},
                 {ptParam,  intMinAngle, "C.) Min Angle (0 - 180)"},
                 {ptParam,  intCycle,    "D.) Number of Cycles"},
@@ -95,23 +95,23 @@ const struct interfaceParam_s interfaceParameters[4][7] = {
                 {ptMenu, 0,  "*.) Main Menu"},
         },
         {
-                {ptNone, -1, "Calibration and Settings"},
+                {ptNone, -1, "Homing and Log"},
                 {ptAction, actHome,     "A.) Home Arm"},
-                {ptAction,  actCal, "B.) Calibration Force"},
-                {ptAction,   actHelp,    "C.) Log"},
-                {ptBool, boolMove, "D.) Move when setting angle?"},
+                {ptAction,  actHelp, "B.) Log"},
+                {ptParam,   intMaxForce, "C.) Set Max Amperage"},
+                {ptBool, boolMove, "D.) Move when Setting Angle"},
                 {ptMenu, 0, "#.) Main Menu"},
                 {ptNone, -1,  ""},
         },
-        {
+        /*{
                 {ptNone, -1, "Storage"},
                 {ptAction, actSave,     "A.) Save Printer Config"},
                 {ptAction, actLoad,     "B.) Load Printer Config"},
                 {ptAction, actNew,      "C.) New Printer Config"},
-                {ptParam,  intStore,    "D.) Store test data every\n(0-) cycles"},
+                {ptParam,  intStore,    "D.) Store test data every\n(0-1000) cycles"},
                 {ptMenu,   0,           "#.) Main Menu"},
                 {ptNone, -1, ""},
-        }
+        }*/
 };
 
 const struct interfaceAct_s interfaceActions[8] = {
@@ -369,8 +369,12 @@ static void handleMenuInput(const struct interfaceParam_s *inter) {
             drawBoolMenu();
             return;
         case ptAction:
-            if (strcmp(interfaceActions[interface.workingParameterNumber].text, "") != 0)
+            if (strcmp(interfaceActions[interface.workingParameterNumber].text, "") != 0) {
                 drawActionMenu();
+            }
+            else{
+                handleActionInput();
+            }
             return;
         case ptNone:
             interface.activeMenu = ptMenu;

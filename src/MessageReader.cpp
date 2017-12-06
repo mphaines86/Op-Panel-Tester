@@ -32,11 +32,11 @@ uint8_t read_message(struct message_t *message) {
                             currentBit ++;
                         }
 
-						for (currentBit; currentBit<=(message->data.length -2); currentBit++){
-							message->data.commandParam[currentBit - message->data.commandCodeLength] = message->data.unorganizedMessage[currentBit + 1];
+						for (; currentBit<=(message->data.length -2); currentBit++){
+							message->data.commandParam[currentBit - message->data.commandCodeLength - 1] = message->data.unorganizedMessage[currentBit];
 
                         }
-                        message->data.commandParamLength = currentBit - message->data.commandCodeLength;
+                        message->data.commandParamLength = currentBit - message->data.commandCodeLength - 1;
 						message->state = MESSAGE_READY;
 						message->data.length = 0;
 				}
