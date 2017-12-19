@@ -1,6 +1,8 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
+// #define DEBUG 1
+
 #include "Arduino.h"
 #include "utilities.h"
 

@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "interface.h"
 #include "MessageReader.h"
-#include "MessageWriter.h"
 #include "storage.h"
 
 int main() {

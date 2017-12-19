@@ -9,6 +9,7 @@
 
 #define DEBOUNCE_MAX 4
 #define NUMBER_OF_SAMPLES 6
+#define SDWRITELIMIT 5
 
 uint32_t ampData[NUMBER_OF_SAMPLES];
 volatile uint32_t messageData = 0;
@@ -89,10 +90,8 @@ uint8_t processRun() {
     //writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0xc8", (char *) "0");
     //writerSendMessage(&outputMessage);
     delayMicroseconds(5000);
-    char temp[8];
+    char temp[12];
     sprintf(temp, "%"PRIu32"", parameterList[intSpeed] * 10000);
-    Serial.println(temp);
-
 
     processMove(parameterList[intMinAngle]);
     delay(1000);
@@ -113,6 +112,12 @@ uint8_t processRun() {
     tft.println();
     tft.setTextSize(2);
     tft.println("Please position op-panel\nin gripper and press\nany key to continue");
+
+#ifdef DEBUG
+    Serial.println("Position setup");
+    Serial.println();
+    Serial.println("Please position op-panel\nin gripper and press\nany key to continue");
+#endif
 
     while(true){
         int8_t keyValue = checkKeypad();
@@ -137,29 +142,39 @@ uint8_t processRun() {
     tft.print(0);
 
     auto runStart = (uint32_t) millis();
+    uint8_t ampCounter = 0;
+    uint32_t writeCounter = 0;
 
     while (currentIteration < parameterList[intCycle]) {
+#ifdef DEBUG
         Serial.print("iter:");
         Serial.println(currentIteration);
+#endif
         processMove(parameterList[intMaxAngle]);
+        //Serial.println(parameterList[intMaxAngle]);
+        ampCounter = 0;
         moveCommand = 1;
-        uint8_t counter = 0;
+        writeCounter++;
         while (moveCommand | (PINA & (1 << PA3))) {
-            //Serial.print(1);
             delay(100);
             if (PINA & (1 << PA3)){
                 moveCommand = 0;
             }
-
-            if (!counter){
-                char charHold[20];
-                sprintf(charHold, "%09"PRIu32"\n%09"PRIu32"\n", currentIteration, (uint32_t) (((uint32_t)millis() - runStart)/1000));
+            if (!ampCounter && writeCounter==SDWRITELIMIT){
+                writeCounter = 0;
+                char charHold[32];
+                sprintf(charHold, "%09"PRIu32"\n%09"PRIu32"\n", currentIteration,
+                        (uint32_t) (((uint32_t)millis() - runStart)/1000));
+#ifdef DEBUG
+                Serial.println(charHold);
+#endif
                 storageWriteLine("SYSTEM_1.VAR", 0, charHold);
+
             }
-            if (counter < (NUMBER_OF_SAMPLES/2)){
+            if (ampCounter < (NUMBER_OF_SAMPLES/2)){
                 writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char * ) nullptr);
                 writerSendMessage(&outputMessage);
-                counter++;
+                ampCounter++;
             }
         }
 
@@ -218,7 +233,7 @@ uint8_t processRun() {
         delayActive = 0;
         processMove(parameterList[intMinAngle]);
         moveCommand = 1;
-        counter = 0;
+        ampCounter = 0;
         while (moveCommand | (PINA & (1 << PA3))){
             delay(100);
             //Serial.print("2: ");
@@ -226,10 +241,10 @@ uint8_t processRun() {
             if(PINA & (1 << PA3)) {
                 moveCommand = 0;
             }
-            if (counter < (NUMBER_OF_SAMPLES/2)){
+            if (ampCounter < (NUMBER_OF_SAMPLES/2)){
                 writerPrepMessage(&outputMessage, '\0', '\0', 'g', (char *) "r0x0c", (char * ) nullptr);
                 writerSendMessage(&outputMessage);
-                counter++;
+                ampCounter++;
             }
         }
         //Serial.println("delay");
@@ -364,22 +379,12 @@ uint8_t processLoad() {
 uint8_t processMove(uint8_t degree){
     uint32_t steps = (uint32_t) degree * 961;
 
-    /*if (steps < 0){
-        PORTE &= ~(1 << PE3);
-        steps = steps * -1;
-    }
-    else{
-        PORTE |= (1 << PE3);
-    }
+    char temp[10];
 
-
-    PORTA |= (1 << PA0);*/
-    // PORTA |= (1 << PA1);
-    //Serial.println(degree);
-
-    char temp[6];
-
-    sprintf(temp, "%"PRIu32"", steps);
+    sprintf(temp, "%" PRIu32 "", (unsigned long) steps);
+#ifdef DEBUG
+    Serial.println(temp);
+#endif
     message_output_t outputMessage{};
     writerPrepMessage(&outputMessage, '\0', '\0', 's', (char *) "r0xca", (char *) temp);
     writerSendMessage(&outputMessage);
@@ -387,20 +392,6 @@ uint8_t processMove(uint8_t degree){
     writerPrepMessage(&outputMessage, '\0', '\0', 't', (char *) "1", (char *) nullptr);
     writerSendMessage(&outputMessage);
     delayMicroseconds(1000);
-
-    /* uint16_t count = 0;
-    steps++;
-    while (count < (uint16_t) steps){
-        Serial.print(count);
-        Serial.print(" ");
-        PORTH |= (1 << PH3);
-        delayMicroseconds(2000);
-        PORTH &= ~(1 << PH3);
-        delayMicroseconds(2000);
-        count++;
-    }
-    Serial.println();*/
-    // PORTA &= ~(1 << PA1);
 
     return 1;
 }

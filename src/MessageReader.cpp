@@ -1,6 +1,8 @@
 #include "MessageReader.h"
 #include <Arduino.h>
 
+// #define DEBUG_READER 1
+
 void setupReader(struct message_t *message){
 	message->data.length = 0;
 }
@@ -11,7 +13,9 @@ uint8_t read_message(struct message_t *message) {
 		case WAITING_FOR_MESSAGE: {
 			if (Serial3.available() > 0) {
 				message->data.unorganizedMessage[message->data.length] = (uint8_t)Serial3.read();
-				//Serial.println(message->data.unorganizedMessage[message->data.length]);
+#ifdef DEBUG_READER
+				Serial.println(message->data.unorganizedMessage[message->data.length]);
+#endif
 				message->data.length++;
 				if (message->data.unorganizedMessage[message->data.length - 1] == '\r'){
 

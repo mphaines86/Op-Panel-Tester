@@ -179,8 +179,18 @@ static void drawMenu() {
     tft.setTextSize(1);
     tft.println();
     tft.setTextSize(2);
-    for (int i = 1; i < 7; i++)
+
+#ifdef DEBUG
+    Serial.println(interfaceParameters[interface.activePage][0].name);
+    Serial.println();
+#endif
+
+    for (int i = 1; i < 7; i++) {
         tft.println(interfaceParameters[interface.activePage][i].name);
+#ifdef DEBUG
+        Serial.println(interfaceParameters[interface.activePage][i].name);
+#endif
+    }
 }
 
 // Draws the menu used for inputting parameter values
@@ -198,6 +208,11 @@ static void drawParamMenu() {
     tft.println("A.) Okay  B.) Cancel");
     tft.setCursor(253, 144);
 
+#ifdef DEBUG
+    Serial.print("Set Value: ");
+    Serial.println(parameterList[interface.workingParameterNumber]);
+    Serial.println("New Value: ");
+#endif
 
 
 }
@@ -220,6 +235,10 @@ static void drawActionMenu() {
     tft.setTextSize(2);
     tft.print("A.) Okay        B.) Cancel");
 
+#ifdef DEBUG
+    Serial.println(interfaceActions[interface.workingParameterNumber].text);
+    Serial.println("A.) Okay        B.) Cancel");
+#endif
 }
 
 // Draws the menu for yes/no parameters
@@ -327,7 +346,11 @@ void handleParamInput() {
     //Serial.print("Current Value:");
     //Serial.println(parameterList[interface.workingParameterNumber]);
     if (interface.sourceNumber >= 10) { // Did the user press A, B, C, D, #, or, *
-        //Serial.println();
+
+#ifdef DEBUG
+        Serial.println();
+#endif
+
         if (interface.sourceNumber == 10) { // If it was A set the proper variables to the desired value
             parameterList[interface.workingParameterNumber] = interface.tempValue;
             interface.tempValue = 0;
@@ -347,6 +370,11 @@ void handleParamInput() {
     } //TODO: Check if changing if to else if breaks anything
     else if (interface.sourceNumber > -1) { // Did the user press any numbers
         tft.print(interface.sourceNumber);
+
+#ifdef DEBUG
+        Serial.print(interface.sourceNumber);
+#endif
+
         interface.tempValue = interface.tempValue * 10 + interface.sourceNumber;
     }
 }
@@ -424,7 +452,7 @@ int8_t handleUserInput(int16_t source) {
 
 
 }
-
+#ifndef DEBUG
 int8_t checkKeypad() {
     *interface.rowsPortRegisters[interface.currentRow] &= ~(1
             << interface.buttonRows[interface.currentRow]);
@@ -452,6 +480,54 @@ int8_t checkKeypad() {
 
     return -1;
 }
+#endif
+
+#ifdef DEBUG
+int8_t checkKeypad(){
+    while(true){
+        if (Serial.available() > 0){
+            uint8_t incomingByte = Serial.read();
+            switch (incomingByte){
+                case '1':
+                    return 3;
+                case '2':
+                    return 2;
+                case '3':
+                    return 1;
+                case 'a':
+                    return 0;
+                case '4':
+                    return 7;
+                case '5':
+                    return 6;
+                case '6':
+                    return 5;
+                case 'b':
+                    return 4;
+                case '7':
+                    return 11;
+                case '8':
+                    return 10;
+                case '9':
+                    return 9;
+                case 'c':
+                    return 8;
+                case '*':
+                    return 15;
+                case '0':
+                    return 14;
+                case '#':
+                    return 13;
+                case 'd':
+                    return 12;
+                default:
+                    return -1;
+            }
+        }
+    }
+
+}
+#endif
 
 void interfaceCheck() {
     int8_t inputValue = checkKeypad();

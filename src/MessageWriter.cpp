@@ -1,4 +1,5 @@
 #include "MessageWriter.h"
+// #define DEBUG_WRITER 1
 
 void writerSendMessage(struct message_output_t *message){
 
@@ -22,7 +23,8 @@ void writerSendMessage(struct message_output_t *message){
 
     delay(1);
 
-    /*Serial.print(message->commandCode);
+#ifdef DEBUG_WRITER
+    Serial.print(message->commandCode);
     Serial.print(' ');
     Serial.print(message->memoryBank);
     Serial.print(' ');
@@ -31,8 +33,8 @@ void writerSendMessage(struct message_output_t *message){
         Serial.print(message->commandParam);
     }
     Serial.print('\r');
-    Serial.println();*/
-
+    Serial.println();
+#endif
 }
 
 void writerPrepMessage(struct message_output_t *message,char nodeId,
